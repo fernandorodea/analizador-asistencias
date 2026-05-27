@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Análisis de Asistencias</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand">Panel de Asistencias</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert alert-warning shadow-sm">{{ messages[0] }}</div>
+          {% endif %}
+        {% endwith %}
+
+        <div class="card shadow mb-4 border-0">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                <h4 class="mb-0 text-primary">Filtros por Parejas (Fecha y Curso)</h4>
+                <p class="text-muted small">El sistema buscará a los asistentes que coincidan con las combinaciones exactas que indiques abajo.</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        
+                        <div class="col-md-12 mb-4">
+                            <label class="form-label fw-bold">1. Sube tu archivo Excel (Obligatorio)</label>
+                            <input type="file" name="file" class="form-control" accept=".xlsx, .xls" required>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold border-bottom w-100 pb-2">2. Empareja tus Fechas y Cursos (Opcional)</label>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small fw-bold">Fecha del 1er Curso</label>
+                            <input type="date" name="fecha_1" class="form-control mb-2" value="{{ valores_formulario.get('fecha_1', '') }}">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label text-muted small fw-bold">Nombre del 1er Curso</label>
+                            <input type="text" name="curso_1" class="form-control mb-4" placeholder="Ej. Atención al turista" value="{{ valores_formulario.get('curso_1', '') }}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small fw-bold">Fecha del 2do Curso</label>
+                            <input type="date" name="fecha_2" class="form-control mb-2" value="{{ valores_formulario.get('fecha_2', '') }}">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label text-muted small fw-bold">Nombre del 2do Curso</label>
+                            <input type="text" name="curso_2" class="form-control mb-4" placeholder="Ej. Manejo de quejas" value="{{ valores_formulario.get('curso_2', '') }}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small fw-bold">Fecha del 3er Curso</label>
+                            <input type="date" name="fecha_3" class="form-control mb-2" value="{{ valores_formulario.get('fecha_3', '') }}">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label text-muted small fw-bold">Nombre del 3er Curso</label>
+                            <input type="text" name="curso_3" class="form-control mb-4" placeholder="Ej. Liderazgo" value="{{ valores_formulario.get('curso_3', '') }}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small fw-bold">Fecha del 4to Curso</label>
+                            <input type="date" name="fecha_4" class="form-control mb-2" value="{{ valores_formulario.get('fecha_4', '') }}">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label text-muted small fw-bold">Nombre del 4to Curso</label>
+                            <input type="text" name="curso_4" class="form-control mb-2" placeholder="Ej. RCP y Primeros Auxilios" value="{{ valores_formulario.get('curso_4', '') }}">
+                        </div>
+
+                        <div class="col-12 mt-4 text-end">
+                            <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm">Subir y Analizar Excel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if busqueda_realizada %}
+            {% if resultados %}
+            <div class="card shadow border-0">
+                <div class="card-body">
+                    <h5 class="mb-3 text-dark">Resultados del Análisis <small class="text-muted fs-6">(Excluyendo Enero y Diciembre)</small></h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre del Asistente</th>
+                                    <th>Cursos Tomados (De los filtrados)</th>
+                                    <th class="text-center">¿Cumple Meta 4 Cursos / 4 Meses?</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in resultados %}
+                                <tr>
+                                    <td class="fw-bold text-secondary">{{ r.nombre }}</td>
+                                    <td>
+                                        <span class="text-dark fw-bold d-block mb-2">{{ r.cursos }}</span>
+                                        <span class="badge bg-secondary">Total asistencias: {{ r.cantidad_asistencias }}</span>
+                                        <span class="badge bg-info text-dark">Cursos distintos: {{ r.cantidad_cursos_distintos }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if r.cumple_meta %}
+                                            <span class="badge bg-success fs-6 p-2 shadow-sm">⭐ Meta Cumplida</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark p-2">No cumple</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info shadow-sm text-center">
+                No se encontraron asistencias que coincidan con los pares de fechas y cursos ingresados.
+            </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>
