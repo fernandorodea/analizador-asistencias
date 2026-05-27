@@ -32,6 +32,7 @@
                         <div class="col-md-12 mb-4">
                             <label class="form-label fw-bold">1. Sube tu archivo Excel (Obligatorio)</label>
                             <input type="file" name="file" class="form-control" accept=".xlsx, .xls" required>
+                            <small class="text-danger mt-1 d-block">*Por seguridad, el archivo debe seleccionarse de nuevo en cada búsqueda.</small>
                         </div>
 
                         <div class="col-md-12">
@@ -40,38 +41,38 @@
                         
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 1er Curso</label>
-                            <input type="date" name="fecha_1" class="form-control mb-2">
+                            <input type="date" name="fecha_1" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_1', '') if valores_formulario else '' }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 1er Curso</label>
-                            <input type="text" name="curso_1" class="form-control mb-4" placeholder="Ej. Atención al turista">
+                            <input type="text" name="curso_1" class="form-control mb-4" placeholder="Ej. Atención al turista" value="{{ valores_formulario.get('curso_1', '') if valores_formulario else '' }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 2do Curso</label>
-                            <input type="date" name="fecha_2" class="form-control mb-2">
+                            <input type="date" name="fecha_2" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_2', '') if valores_formulario else '' }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 2do Curso</label>
-                            <input type="text" name="curso_2" class="form-control mb-4" placeholder="Ej. Manejo de quejas">
+                            <input type="text" name="curso_2" class="form-control mb-4" placeholder="Ej. Manejo de quejas" value="{{ valores_formulario.get('curso_2', '') if valores_formulario else '' }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 3er Curso</label>
-                            <input type="date" name="fecha_3" class="form-control mb-2">
+                            <input type="date" name="fecha_3" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_3', '') if valores_formulario else '' }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 3er Curso</label>
-                            <input type="text" name="curso_3" class="form-control mb-4" placeholder="Ej. Liderazgo">
+                            <input type="text" name="curso_3" class="form-control mb-4" placeholder="Ej. Liderazgo" value="{{ valores_formulario.get('curso_3', '') if valores_formulario else '' }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 4to Curso</label>
-                            <input type="date" name="fecha_4" class="form-control mb-2">
+                            <input type="date" name="fecha_4" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_4', '') if valores_formulario else '' }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 4to Curso</label>
-                            <input type="text" name="curso_4" class="form-control mb-2" placeholder="Ej. RCP y Primeros Auxilios">
+                            <input type="text" name="curso_4" class="form-control mb-2" placeholder="Ej. RCP y Primeros Auxilios" value="{{ valores_formulario.get('curso_4', '') if valores_formulario else '' }}">
                         </div>
 
                         <div class="col-12 mt-4 text-end">
@@ -84,7 +85,7 @@
 
         {% if busqueda_realizada %}
             {% if resultados %}
-            <div class="card shadow border-0">
+            <div class="card shadow border-0 mb-5">
                 <div class="card-body">
                     <h5 class="mb-3 text-dark">Resultados del Análisis <small class="text-muted fs-6">(Excluyendo Enero y Diciembre)</small></h5>
                     <div class="table-responsive">
@@ -126,5 +127,27 @@
             {% endif %}
         {% endif %}
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Selecciona todos los campos que tengan la clase 'date-filter'
+            const camposFecha = document.querySelectorAll('.date-filter');
+            
+            camposFecha.forEach(function(campo) {
+                campo.addEventListener('change', function() {
+                    if (this.value) {
+                        // Extrae el mes de la fecha (formato YYYY-MM-DD)
+                        const mes = this.value.substring(5, 7);
+                        
+                        // Si es Enero (01) o Diciembre (12)
+                        if (mes === '01' || mes === '12') {
+                            alert('⚠️ Atención: Los meses de Enero y Diciembre no son válidos para la evaluación continua. Por favor selecciona otro mes.');
+                            this.value = ''; // Borra la casilla para que elija bien
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
