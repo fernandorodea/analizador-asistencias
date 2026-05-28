@@ -4,11 +4,49 @@
     <meta charset="UTF-8">
     <title>Análisis de Asistencias</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --color-vino: #84142D;
+            --color-dorado: #C4A77D;
+            --color-fondo: #FDFDFD;
+        }
+        
+        body {
+            background-color: var(--color-fondo);
+            background-image: url("{{ url_for('static', filename='fondo.png') }}");
+            background-repeat: repeat;
+        }
+        
+        .bg-vino { background-color: var(--color-vino) !important; }
+        .text-vino { color: var(--color-vino) !important; }
+        
+        .borde-dorado-top { border-top: 5px solid var(--color-dorado) !important; }
+        .borde-dorado-bottom { border-bottom: 5px solid var(--color-dorado) !important; }
+        
+        .btn-institucional {
+            background-color: var(--color-vino);
+            color: white;
+            border: none;
+            font-weight: 500;
+        }
+        .btn-institucional:hover {
+            background-color: #6a0f24;
+            color: white;
+        }
+        
+        /* Estilo para la cabecera de la tabla */
+        .table-vino th {
+            background-color: var(--color-vino) !important;
+            color: white !important;
+            border-color: var(--color-vino);
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-dark bg-dark mb-4">
+<body>
+    <nav class="navbar navbar-dark bg-vino mb-4 borde-dorado-bottom shadow-sm">
         <div class="container">
-            <span class="navbar-brand">Panel de Asistencias</span>
+            <span class="navbar-brand fw-bold">Secretaría de Cultura y Turismo - Panel de Asistencias</span>
             <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Cerrar Sesión</a>
         </div>
     </nav>
@@ -20,9 +58,9 @@
           {% endif %}
         {% endwith %}
 
-        <div class="card shadow mb-4 border-0">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                <h4 class="mb-0 text-primary">Filtros por Parejas (Fecha y Curso)</h4>
+        <div class="card shadow mb-4 border-0 borde-dorado-top" style="background-color: rgba(255, 255, 255, 0.98);">
+            <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+                <h4 class="mb-0 text-vino fw-bold">Filtros por Parejas (Fecha y Curso)</h4>
                 <p class="text-muted small">El sistema buscará a los asistentes que coincidan con las combinaciones exactas que indiques abajo.</p>
             </div>
             <div class="card-body">
@@ -36,47 +74,47 @@
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label fw-bold border-bottom w-100 pb-2">2. Empareja tus Fechas y Cursos (Opcional)</label>
+                            <label class="form-label fw-bold border-bottom w-100 pb-2 text-vino">2. Empareja tus Fechas y Cursos (Opcional)</label>
                         </div>
                         
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 1er Curso</label>
-                            <input type="date" name="fecha_1" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_1', '') if valores_formulario else '' }}">
+                            <input type="date" name="fecha_1" class="form-control mb-2 date-filter" value="{{ request.form.get('fecha_1', '') }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 1er Curso</label>
-                            <input type="text" name="curso_1" class="form-control mb-4" placeholder="Ej. Atención al turista" value="{{ valores_formulario.get('curso_1', '') if valores_formulario else '' }}">
+                            <input type="text" name="curso_1" class="form-control mb-4" placeholder="Ej. Atención al turista" value="{{ request.form.get('curso_1', '') }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 2do Curso</label>
-                            <input type="date" name="fecha_2" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_2', '') if valores_formulario else '' }}">
+                            <input type="date" name="fecha_2" class="form-control mb-2 date-filter" value="{{ request.form.get('fecha_2', '') }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 2do Curso</label>
-                            <input type="text" name="curso_2" class="form-control mb-4" placeholder="Ej. Manejo de quejas" value="{{ valores_formulario.get('curso_2', '') if valores_formulario else '' }}">
+                            <input type="text" name="curso_2" class="form-control mb-4" placeholder="Ej. Manejo de quejas" value="{{ request.form.get('curso_2', '') }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 3er Curso</label>
-                            <input type="date" name="fecha_3" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_3', '') if valores_formulario else '' }}">
+                            <input type="date" name="fecha_3" class="form-control mb-2 date-filter" value="{{ request.form.get('fecha_3', '') }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 3er Curso</label>
-                            <input type="text" name="curso_3" class="form-control mb-4" placeholder="Ej. Liderazgo" value="{{ valores_formulario.get('curso_3', '') if valores_formulario else '' }}">
+                            <input type="text" name="curso_3" class="form-control mb-4" placeholder="Ej. Liderazgo" value="{{ request.form.get('curso_3', '') }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 4to Curso</label>
-                            <input type="date" name="fecha_4" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_4', '') if valores_formulario else '' }}">
+                            <input type="date" name="fecha_4" class="form-control mb-2 date-filter" value="{{ request.form.get('fecha_4', '') }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 4to Curso</label>
-                            <input type="text" name="curso_4" class="form-control mb-2" placeholder="Ej. RCP y Primeros Auxilios" value="{{ valores_formulario.get('curso_4', '') if valores_formulario else '' }}">
+                            <input type="text" name="curso_4" class="form-control mb-2" placeholder="Ej. RCP y Primeros Auxilios" value="{{ request.form.get('curso_4', '') }}">
                         </div>
 
                         <div class="col-12 mt-4 text-end">
-                            <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm">Subir y Analizar Excel</button>
+                            <button type="submit" class="btn btn-institucional btn-lg px-5 shadow-sm">Subir y Analizar Excel</button>
                         </div>
                     </div>
                 </form>
@@ -85,12 +123,12 @@
 
         {% if busqueda_realizada %}
             {% if resultados %}
-            <div class="card shadow border-0 mb-5">
+            <div class="card shadow border-0 mb-5 borde-dorado-top" style="background-color: rgba(255, 255, 255, 0.98);">
                 <div class="card-body">
-                    <h5 class="mb-3 text-dark">Resultados del Análisis <small class="text-muted fs-6">(Excluyendo Enero y Diciembre)</small></h5>
+                    <h5 class="mb-3 text-vino fw-bold">Resultados del Análisis <small class="text-muted fs-6 fw-normal">(Excluyendo Enero y Diciembre)</small></h5>
                     <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle">
-                            <thead class="table-dark">
+                            <thead class="table-vino">
                                 <tr>
                                     <th>Nombre del Asistente</th>
                                     <th>Cursos Tomados (De los filtrados)</th>
@@ -104,7 +142,7 @@
                                     <td>
                                         <span class="text-dark fw-bold d-block mb-2">{{ r.cursos }}</span>
                                         <span class="badge bg-secondary">Total asistencias: {{ r.cantidad_asistencias }}</span>
-                                        <span class="badge bg-info text-dark">Cursos distintos: {{ r.cantidad_cursos_distintos }}</span>
+                                        <span class="badge" style="background-color: var(--color-dorado); color: white;">Cursos distintos: {{ r.cantidad_cursos_distintos }}</span>
                                     </td>
                                     <td class="text-center">
                                         {% if r.cumple_meta %}
@@ -130,19 +168,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Selecciona todos los campos que tengan la clase 'date-filter'
             const camposFecha = document.querySelectorAll('.date-filter');
             
             camposFecha.forEach(function(campo) {
                 campo.addEventListener('change', function() {
                     if (this.value) {
-                        // Extrae el mes de la fecha (formato YYYY-MM-DD)
                         const mes = this.value.substring(5, 7);
-                        
-                        // Si es Enero (01) o Diciembre (12)
                         if (mes === '01' || mes === '12') {
                             alert('⚠️ Atención: Los meses de Enero y Diciembre no son válidos para la evaluación continua. Por favor selecciona otro mes.');
-                            this.value = ''; // Borra la casilla para que elija bien
+                            this.value = ''; 
                         }
                     }
                 });
