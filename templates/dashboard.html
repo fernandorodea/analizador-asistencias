@@ -41,38 +41,38 @@
                         
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 1er Curso</label>
-                            <input type="date" name="fecha_1" class="form-control mb-2 date-filter" value="{{ request.form.get('fecha_1', '') }}">
+                            <input type="date" name="fecha_1" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_1', '') if valores_formulario else '' }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 1er Curso</label>
-                            <input type="text" name="curso_1" class="form-control mb-4" placeholder="Ej. Atención al turista" value="{{ request.form.get('curso_1', '') }}">
+                            <input type="text" name="curso_1" class="form-control mb-4" placeholder="Ej. Atención al turista" value="{{ valores_formulario.get('curso_1', '') if valores_formulario else '' }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 2do Curso</label>
-                            <input type="date" name="fecha_2" class="form-control mb-2 date-filter" value="{{ request.form.get('fecha_2', '') }}">
+                            <input type="date" name="fecha_2" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_2', '') if valores_formulario else '' }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 2do Curso</label>
-                            <input type="text" name="curso_2" class="form-control mb-4" placeholder="Ej. Manejo de quejas" value="{{ request.form.get('curso_2', '') }}">
+                            <input type="text" name="curso_2" class="form-control mb-4" placeholder="Ej. Manejo de quejas" value="{{ valores_formulario.get('curso_2', '') if valores_formulario else '' }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 3er Curso</label>
-                            <input type="date" name="fecha_3" class="form-control mb-2 date-filter" value="{{ request.form.get('fecha_3', '') }}">
+                            <input type="date" name="fecha_3" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_3', '') if valores_formulario else '' }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 3er Curso</label>
-                            <input type="text" name="curso_3" class="form-control mb-4" placeholder="Ej. Liderazgo" value="{{ request.form.get('curso_3', '') }}">
+                            <input type="text" name="curso_3" class="form-control mb-4" placeholder="Ej. Liderazgo" value="{{ valores_formulario.get('curso_3', '') if valores_formulario else '' }}">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label text-muted small fw-bold">Fecha del 4to Curso</label>
-                            <input type="date" name="fecha_4" class="form-control mb-2 date-filter" value="{{ request.form.get('fecha_4', '') }}">
+                            <input type="date" name="fecha_4" class="form-control mb-2 date-filter" value="{{ valores_formulario.get('fecha_4', '') if valores_formulario else '' }}">
                         </div>
                         <div class="col-md-9">
                             <label class="form-label text-muted small fw-bold">Nombre del 4to Curso</label>
-                            <input type="text" name="curso_4" class="form-control mb-2" placeholder="Ej. RCP y Primeros Auxilios" value="{{ request.form.get('curso_4', '') }}">
+                            <input type="text" name="curso_4" class="form-control mb-2" placeholder="Ej. RCP y Primeros Auxilios" value="{{ valores_formulario.get('curso_4', '') if valores_formulario else '' }}">
                         </div>
 
                         <div class="col-12 mt-4 text-end">
@@ -130,15 +130,19 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Selecciona todos los campos que tengan la clase 'date-filter'
             const camposFecha = document.querySelectorAll('.date-filter');
             
             camposFecha.forEach(function(campo) {
                 campo.addEventListener('change', function() {
                     if (this.value) {
+                        // Extrae el mes de la fecha (formato YYYY-MM-DD)
                         const mes = this.value.substring(5, 7);
+                        
+                        // Si es Enero (01) o Diciembre (12)
                         if (mes === '01' || mes === '12') {
                             alert('⚠️ Atención: Los meses de Enero y Diciembre no son válidos para la evaluación continua. Por favor selecciona otro mes.');
-                            this.value = ''; 
+                            this.value = ''; // Borra la casilla para que elija bien
                         }
                     }
                 });

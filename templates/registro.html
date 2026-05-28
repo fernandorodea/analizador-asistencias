@@ -2,41 +2,39 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Acceso al Sistema</title>
+    <title>Registrar Usuario</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
     
     <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
-        <h3 class="text-center mb-4">Acceso al Sistema</h3>
+        <h4 class="text-center mb-4 text-success">Registrar Nuevo Usuario</h4>
         
         {% with messages = get_flashed_messages() %}
           {% if messages %}
-            <div class="alert alert-info text-center">{{ messages[0] }}</div>
+            <div class="alert alert-warning text-center">{{ messages[0] }}</div>
           {% endif %}
         {% endwith %}
 
         <form method="POST">
             <div class="mb-3">
-                <label class="form-label">Usuario</label>
-                <input type="text" name="username" class="form-control" placeholder="Ej. admin" required>
+                <label class="form-label">Elige un nombre de usuario</label>
+                <input type="text" name="username" class="form-control" required>
             </div>
-            
-            <div class="mb-3">
-                <label class="form-label">Contraseña</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+            <div class="mb-4">
+                <label class="form-label">Crea una contraseña</label>
+                <input type="password" name="password" id="password" class="form-control" required>
                 <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" id="showPassword" onclick="togglePassword()">
                     <label class="form-check-label text-muted small" for="showPassword">Mostrar contraseña</label>
                 </div>
             </div>
             
-            <button type="submit" class="btn btn-primary w-100 mb-3">Entrar</button>
+            <button type="submit" class="btn btn-success w-100 mb-3">Crear Cuenta</button>
         </form>
 
         <div class="text-center mt-2 border-top pt-3">
-            <a href="{{ url_for('recuperar') }}" class="text-decoration-none small d-block mb-2">¿Olvidaste tu contraseña?</a>
-            <a href="{{ url_for('registro') }}" class="btn btn-outline-secondary btn-sm w-100">Registrar nuevo usuario</a>
+            <a href="{{ url_for('login') }}" class="text-decoration-none small">Volver al inicio de sesión</a>
         </div>
     </div>
 
