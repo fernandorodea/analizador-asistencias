@@ -1,33 +1,50 @@
 import os
 import pandas as pd
+import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_para_sesiones' 
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'xlsx', 'xls'}
 
-# Crear la carpeta de subidas si no existe
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# --- CONFIGURACIÓN DE BASE DE DATOS ---
+def init_db():
+    conn = sqlite3.connect('usuarios.db')
+    c = conn.cursor()
+    # Crea la tabla si no existe
+    c.execute('''CREATE TABLE IF NOT EXISTS usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)''')
+    
+    # Crear el usuario admin por defecto si la base de datos está vacía
+    c.execute("SELECT * FROM usuarios WHERE username='admin'")
+    if not c.fetchone():
+        hashed_pw = generate_password_hash('1234')
+        c.execute("INSERT INTO usuarios (username, password) VALUES (?, ?)", ('admin', hashed_pw))
+    
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def get_db_connection():
+    conn = sqlite3.connect('usuarios.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# --- FUNCIONES DE ANÁLISIS ---
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 def analizar_asistencias(filepath, filtros_pares=None):
-    # Leer el Excel
     df = pd.read_excel(filepath)
-    
-    # Limpiar espacios en blanco en los encabezados
     df.columns = df.columns.str.strip()
-    
-    # Convertir 'Marca temporal' a fecha real
     df['Fecha'] = pd.to_datetime(df['Marca temporal'], dayfirst=True, errors='coerce')
-    
-    # REGLA: IGNORAR ENERO (1) Y DICIEMBRE (12)
     df = df[~df['Fecha'].dt.month.isin([1, 12])]
     
-    # Filtrar por parejas (Fecha + Curso)
     if filtros_pares:
         mascara_global = pd.Series(False, index=df.index)
         tiene_al_menos_un_filtro = False
@@ -35,20 +52,15 @@ def analizar_asistencias(filepath, filtros_pares=None):
         for par in filtros_pares:
             f = par.get('fecha')
             c = par.get('curso')
-            
             if f or c:
                 tiene_al_menos_un_filtro = True
                 mascara_actual = pd.Series(True, index=df.index)
-                
                 if f:
                     fecha_dt = pd.to_datetime(f).date()
                     mascara_actual = mascara_actual & (df['Fecha'].dt.date == fecha_dt)
-                
                 if c:
                     mascara_actual = mascara_actual & (df['Curso al que asiste'].str.contains(c, case=False, na=False))
-                
                 mascara_global = mascara_global | mascara_actual
-        
         if tiene_al_menos_un_filtro:
             df = df[mascara_global]
 
@@ -58,13 +70,10 @@ def analizar_asistencias(filepath, filtros_pares=None):
     df['Periodo'] = df['Fecha'].dt.to_period('M')
     resultados = []
     
-    # Agrupar por el nombre del asistente
     for nombre, grupo in df.groupby('Nombre completo del asistente'):
         grupo = grupo.sort_values('Fecha')
-        
         cursos_unicos = grupo['Curso al que asiste'].unique().tolist()
         cantidad_cursos_distintos = len(cursos_unicos)
-        
         periodos = sorted(grupo['Periodo'].dropna().unique())
         meses_registrados = len(periodos)
         
@@ -91,10 +100,9 @@ def analizar_asistencias(filepath, filtros_pares=None):
             'cumple_meta': cumple_meta
         })
     
-    # --- ESTA ES LA REGLA NUEVA: Ordenar de mayor a menor según 'cantidad_asistencias' ---
-    resultados = sorted(resultados, key=lambda x: x['cantidad_asistencias'], reverse=True)
-        
-    return resultados
+    return sorted(resultados, key=lambda x: x['cantidad_asistencias'], reverse=True)
+
+# --- RUTAS DE LA PÁGINA ---
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -102,13 +110,63 @@ def login():
         usuario = request.form.get('username')
         password = request.form.get('password')
         
-        if usuario == 'admin' and password == '1234':
+        conn = get_db_connection()
+        user = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
+        conn.close()
+        
+        # Comparamos la contraseña usando el sistema de encriptación
+        if user and check_password_hash(user['password'], password):
             session['logged_in'] = True
+            session['username'] = user['username']
             return redirect(url_for('dashboard'))
         else:
-            flash('Credenciales incorrectas')
+            flash('Usuario o contraseña incorrectos. Intenta de nuevo.')
     
     return render_template('login.html')
+
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    if request.method == 'POST':
+        usuario = request.form.get('username')
+        password = request.form.get('password')
+        
+        conn = get_db_connection()
+        user_exists = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
+        
+        if user_exists:
+            flash('Ese nombre de usuario ya existe. Por favor elige otro.')
+        else:
+            hashed_pw = generate_password_hash(password)
+            conn.execute("INSERT INTO usuarios (username, password) VALUES (?, ?)", (usuario, hashed_pw))
+            conn.commit()
+            flash('Usuario registrado exitosamente. Ahora puedes iniciar sesión.')
+            conn.close()
+            return redirect(url_for('login'))
+        conn.close()
+        
+    return render_template('registro.html')
+
+@app.route('/recuperar', methods=['GET', 'POST'])
+def recuperar():
+    if request.method == 'POST':
+        usuario = request.form.get('username')
+        nueva_password = request.form.get('new_password')
+        
+        conn = get_db_connection()
+        user = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
+        
+        if user:
+            hashed_pw = generate_password_hash(nueva_password)
+            conn.execute("UPDATE usuarios SET password = ? WHERE username = ?", (hashed_pw, usuario))
+            conn.commit()
+            flash('Contraseña actualizada con éxito. Inicia sesión con tu nueva contraseña.')
+            conn.close()
+            return redirect(url_for('login'))
+        else:
+            flash('No se encontró ningún usuario con ese nombre.')
+        conn.close()
+        
+    return render_template('recuperar.html')
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
@@ -117,22 +175,25 @@ def dashboard():
 
     resultados = None
     busqueda_realizada = False
+    valores_formulario = {}
     
     if request.method == 'POST':
         filtros_pares = []
         for i in range(1, 5):
-            fecha = request.form.get(f'fecha_{i}')
-            curso = request.form.get(f'curso_{i}')
+            fecha = request.form.get(f'fecha_{i}', '')
+            curso = request.form.get(f'curso_{i}', '')
+            valores_formulario[f'fecha_{i}'] = fecha
+            valores_formulario[f'curso_{i}'] = curso
             filtros_pares.append({'fecha': fecha, 'curso': curso})
 
         if 'file' not in request.files:
             flash('No se seleccionó ningún archivo')
-            return redirect(request.url)
+            return render_template('dashboard.html', resultados=None, busqueda_realizada=False, valores_formulario=valores_formulario)
             
         file = request.files['file']
         if file.filename == '':
             flash('No se seleccionó ningún archivo')
-            return redirect(request.url)
+            return render_template('dashboard.html', resultados=None, busqueda_realizada=False, valores_formulario=valores_formulario)
             
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
@@ -148,12 +209,16 @@ def dashboard():
             if os.path.exists(filepath):
                 os.remove(filepath)
 
-    return render_template('dashboard.html', resultados=resultados, busqueda_realizada=busqueda_realizada)
+    return render_template('dashboard.html', resultados=resultados, busqueda_realizada=busqueda_realizada, valores_formulario=valores_formulario)
 
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
+    session.pop('username', None)
     return redirect(url_for('login'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
