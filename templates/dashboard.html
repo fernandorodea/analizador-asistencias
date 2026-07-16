@@ -156,6 +156,16 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- BOTÓN CALIFICAR EXÁMENES (Se muestra solo si hay candidatos aptos) -->
+                    {% if session.get('candidatos_aptos') %}
+                    <div class="text-end mt-4 mb-2">
+                        <a href="{{ url_for('calificar_examenes') }}" class="btn btn-institucional btn-lg px-5 shadow">
+                            Siguiente: Calificar Exámenes ➔
+                        </a>
+                    </div>
+                    {% endif %}
+                    
                 </div>
             </div>
             {% else %}
