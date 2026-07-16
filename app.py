@@ -68,29 +68,23 @@ def analizar_asistencias(filepath, filtros_pares=None):
     if df.empty:
         return []
 
-    # --- FUNCIÓN AUXILIAR PARA NORMALIZAR TEXTO (ELIMINA ACENTOS Y DOBLES ESPACIOS) ---
+    # --- FUNCIÓN AUXILIAR PARA NORMALIZAR TEXTO ---
     def limpiar_texto(val):
         if pd.isna(val):
             return ""
-        # Limpia espacios dobles en medio y extremos del texto
         val = " ".join(str(val).strip().split())
-        # Descompone los caracteres en sus elementos base para remover los acentos/diacríticos
         return "".join(c for c in unicodedata.normalize('NFD', val) if unicodedata.category(c) != 'Mn').upper()
 
-    # Creamos una columna interna oculta para poder agrupar sin variaciones ortográficas
     df['Nombre_Normalizado'] = df['Nombre completo del asistente'].apply(limpiar_texto)
-    # ---------------------------------------------------------------------------------
+    # ----------------------------------------------
 
     df['Periodo'] = df['Fecha'].dt.to_period('M')
     resultados = []
     
-    # Agrupamos utilizando la columna limpia para agrupar duplicados de nombres
     for nombre_limpio, grupo in df.groupby('Nombre_Normalizado'):
         grupo = grupo.sort_values('Fecha')
         
-        # Obtenemos la primera ortografía del nombre original para pintarlo bonito en pantalla
         nombre_original = grupo['Nombre completo del asistente'].iloc[0]
-        
         cursos_unicos = grupo['Curso al que asiste'].unique().tolist()
         amount_cursos_distintos = len(cursos_unicos)
         periodos = sorted(grupo['Periodo'].dropna().unique())
@@ -111,7 +105,7 @@ def analizar_asistencias(filepath, filtros_pares=None):
         
         resultados.append({
             'nombre': nombre_original,
-            'cantidad_asistencias': len(grupo), # Suma total de registros del asistente unificado
+            'cantidad_asistencias': len(grupo),
             'cursos': ", ".join(cursos_unicos),
             'cantidad_cursos_distintos': amount_cursos_distintos,
             'es_continuo': "Sí" if es_continuo else "No",
@@ -130,10 +124,9 @@ def login():
         password = request.form.get('password')
         
         conn = get_db_connection()
-        user = conn.execute("SELECT * VALUES FROM usuarios WHERE username = ?", (usuario,)).fetchone()
+        user = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
         conn.close()
         
-        # Comparamos la contraseña usando el sistema de encriptación
         if user and check_password_hash(user['password'], password):
             session['logged_in'] = True
             session['username'] = user['username']
@@ -222,6 +215,12 @@ def dashboard():
             try:
                 resultados = analizar_asistencias(filepath, filtros_pares)
                 busqueda_realizada = True
+                
+                # --- NUEVO: Guardar a los que sí cumplieron en la sesión ---
+                candidatos_aptos = [res['nombre'] for res in resultados if res['cumple_meta']]
+                session['candidatos_aptos'] = candidatos_aptos
+                # -----------------------------------------------------------
+                
             except Exception as e:
                 flash(f'Error al procesar el Excel. Detalle: {e}')
             
@@ -229,6 +228,42 @@ def dashboard():
                 os.remove(filepath)
 
     return render_template('dashboard.html', resultados=resultados, busqueda_realizada=busqueda_realizada, valores_formulario=valores_formulario)
+
+# --- NUEVA RUTA PARA CALIFICAR EXÁMENES ---
+@app.route('/calificar_examenes', methods=['GET', 'POST'])
+def calificar_examenes():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    candidatos = session.get('candidatos_aptos', [])
+
+    if request.method == 'POST':
+        evaluaciones = []
+        for nombre in candidatos:
+            try:
+                e1 = float(request.form.get(f'e1_{nombre}', 0))
+                e2 = float(request.form.get(f'e2_{nombre}', 0))
+                e3 = float(request.form.get(f'e3_{nombre}', 0))
+                e4 = float(request.form.get(f'e4_{nombre}', 0))
+            except ValueError:
+                e1, e2, e3, e4 = 0, 0, 0, 0
+
+            if min(e1, e2, e3, e4) >= 8:
+                estado = "Certificado"
+            else:
+                estado = "No Certificado (Requiere mínimo 8 en todos)"
+                
+            evaluaciones.append({
+                'nombre': nombre,
+                'estado': estado,
+                'notas': [e1, e2, e3, e4]
+            })
+            
+        flash('¡Exámenes evaluados con éxito!')
+        return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=evaluaciones)
+
+    return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=None)
+# ------------------------------------------
 
 @app.route('/logout')
 def logout():
