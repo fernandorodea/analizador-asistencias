@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calificar Exámenes - Portal de Gestión</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #7D1538; border-bottom: 2px solid #7D1538; padding-bottom: 10px; margin-top: 0;}
+        p { font-size: 15px; color: #555; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        th, td { padding: 15px; border: 1px solid #e0e0e0; text-align: center; }
+        th { background-color: #7D1538; color: white; font-weight: normal; }
+        .nombre-col { text-align: left; font-weight: bold; color: #444; background-color: #f9f9f9; }
+        input[type="number"] { width: 70px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 15px; }
+        input[type="number"]:focus { outline: none; border-color: #7D1538; box-shadow: 0 0 5px rgba(125, 21, 56, 0.3); }
+        .btn-submit { background-color: #7D1538; color: white; padding: 14px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 30px; width: 100%; transition: background 0.3s; }
+        .btn-submit:hover { background-color: #5c0f29; }
+        .btn-back { display: inline-block; margin-bottom: 20px; color: #7D1538; text-decoration: none; font-weight: bold; font-size: 15px; }
+        .btn-back:hover { text-decoration: underline; }
+        .estado-verde { color: white; background-color: #28a745; padding: 8px 12px; border-radius: 5px; font-size: 14px; font-weight: bold; display: inline-block; }
+        .estado-rojo { color: white; background-color: #dc3545; padding: 8px 12px; border-radius: 5px; font-size: 14px; font-weight: bold; display: inline-block; }
+        .flash-msg { background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 5px solid #28a745; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="btn-back">⬅ Volver al Dashboard</a>
+        <h2>Calificación de Exámenes (PST)</h2>
+        <p>A continuación se listan los prestadores de servicios que <strong>cumplieron con las 4 asistencias</strong>. Ingresa sus calificaciones. La nota mínima aprobatoria para el certificado es <strong>8</strong> en todos los módulos.</p>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-msg">
+                    <strong>¡Éxito!</strong> {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if candidatos %}
+            <form method="POST">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="nombre-col">Nombre del Asistente</th>
+                            <th>Examen 1</th>
+                            <th>Examen 2</th>
+                            <th>Examen 3</th>
+                            <th>Examen 4</th>
+                            {% if evaluaciones %}<th>Resultado de Certificación</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for nombre in candidatos %}
+                        <tr>
+                            <td class="nombre-col">{{ nombre }}</td>
+                            
+                            {% if evaluaciones %}
+                                <!-- Vista de Resultados Guardados -->
+                                {% for eval in evaluaciones %}
+                                    {% if eval.nombre == nombre %}
+                                        <td><strong>{{ eval.notas[0] }}</strong></td>
+                                        <td><strong>{{ eval.notas[1] }}</strong></td>
+                                        <td><strong>{{ eval.notas[2] }}</strong></td>
+                                        <td><strong>{{ eval.notas[3] }}</strong></td>
+                                        <td>
+                                            {% if "No" in eval.estado %}
+                                                <span class="estado-rojo">❌ {{ eval.estado }}</span>
+                                            {% else %}
+                                                <span class="estado-verde">✅ {{ eval.estado }}</span>
+                                            {% endif %}
+                                        </td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <!-- Vista de Inputs para calificar -->
+                                <td><input type="number" name="e1_{{ nombre }}" min="0" max="10" step="0.1" placeholder="Ej: 8" required></td>
+                                <td><input type="number" name="e2_{{ nombre }}" min="0" max="10" step="0.1" placeholder="Ej: 8" required></td>
+                                <td><input type="number" name="e3_{{ nombre }}" min="0" max="10" step="0.1" placeholder="Ej: 8" required></td>
+                                <td><input type="number" name="e4_{{ nombre }}" min="0" max="10" step="0.1" placeholder="Ej: 8" required></td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                {% if not evaluaciones %}
+                    <button type="submit" class="btn-submit">Guardar Calificaciones y Evaluar</button>
+                {% endif %}
+            </form>
+        {% else %}
+            <div style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 5px; text-align: center; border: 1px solid #f5c6cb;">
+                <strong>Aviso:</strong> No hay candidatos en memoria. Sube y analiza un archivo de asistencias en el Dashboard primero.
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
