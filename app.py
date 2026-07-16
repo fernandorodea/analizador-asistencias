@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import sqlite3
+import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -67,13 +68,31 @@ def analizar_asistencias(filepath, filtros_pares=None):
     if df.empty:
         return []
 
+    # --- FUNCIÓN AUXILIAR PARA NORMALIZAR TEXTO (ELIMINA ACENTOS Y DOBLES ESPACIOS) ---
+    def limpiar_texto(val):
+        if pd.isna(val):
+            return ""
+        # Limpia espacios dobles en medio y extremos del texto
+        val = " ".join(str(val).strip().split())
+        # Descompone los caracteres en sus elementos base para remover los acentos/diacríticos
+        return "".join(c for c in unicodedata.normalize('NFD', val) if unicodedata.category(c) != 'Mn').upper()
+
+    # Creamos una columna interna oculta para poder agrupar sin variaciones ortográficas
+    df['Nombre_Normalizado'] = df['Nombre completo del asistente'].apply(limpiar_texto)
+    # ---------------------------------------------------------------------------------
+
     df['Periodo'] = df['Fecha'].dt.to_period('M')
     resultados = []
     
-    for nombre, grupo in df.groupby('Nombre completo del asistente'):
+    # Agrupamos utilizando la columna limpia para agrupar duplicados de nombres
+    for nombre_limpio, grupo in df.groupby('Nombre_Normalizado'):
         grupo = grupo.sort_values('Fecha')
+        
+        # Obtenemos la primera ortografía del nombre original para pintarlo bonito en pantalla
+        nombre_original = grupo['Nombre completo del asistente'].iloc[0]
+        
         cursos_unicos = grupo['Curso al que asiste'].unique().tolist()
-        cantidad_cursos_distintos = len(cursos_unicos)
+        amount_cursos_distintos = len(cursos_unicos)
         periodos = sorted(grupo['Periodo'].dropna().unique())
         meses_registrados = len(periodos)
         
@@ -87,14 +106,14 @@ def analizar_asistencias(filepath, filtros_pares=None):
             es_continuo = False
             
         cumple_meta = False
-        if es_continuo and meses_registrados >= 4 and cantidad_cursos_distintos >= 4:
+        if es_continuo and meses_registrados >= 4 and amount_cursos_distintos >= 4:
             cumple_meta = True
         
         resultados.append({
-            'nombre': nombre,
-            'cantidad_asistencias': len(grupo),
+            'nombre': nombre_original,
+            'cantidad_asistencias': len(grupo), # Suma total de registros del asistente unificado
             'cursos': ", ".join(cursos_unicos),
-            'cantidad_cursos_distintos': cantidad_cursos_distintos,
+            'cantidad_cursos_distintos': amount_cursos_distintos,
             'es_continuo': "Sí" if es_continuo else "No",
             'meses_registrados': meses_registrados,
             'cumple_meta': cumple_meta
@@ -111,7 +130,7 @@ def login():
         password = request.form.get('password')
         
         conn = get_db_connection()
-        user = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
+        user = conn.execute("SELECT * VALUES FROM usuarios WHERE username = ?", (usuario,)).fetchone()
         conn.close()
         
         # Comparamos la contraseña usando el sistema de encriptación
@@ -216,9 +235,6 @@ def logout():
     session.pop('logged_in', None)
     session.pop('username', None)
     return redirect(url_for('login'))
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
