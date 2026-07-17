@@ -16,143 +16,130 @@
             background-color: #f4f4f9; 
             background-image: url("{{ url_for('static', filename='fondo.png') }}");
             background-repeat: repeat;
+            margin: 0; 
+            padding: 0; 
+            color: #333; 
         }
-        .borde-dorado-bottom { border-bottom: 5px solid var(--color-dorado); }
-        .btn-institucional { background-color: var(--color-vino); color: white; font-weight: bold; }
-        .btn-institucional:hover { background-color: #5c0f29; color: white; }
-        .btn-dorado { background-color: var(--color-dorado); color: white; font-weight: bold; }
-        .btn-dorado:hover { background-color: #a88d65; color: white; }
-        .card-custom { border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background-color: white; border: none; }
-        .card-header-custom { background-color: var(--color-vino); color: white; border-radius: 8px 8px 0 0 !important; }
-        .table-custom th { background-color: var(--color-vino); color: white; font-weight: normal; text-align: center; }
-        .table-custom td { text-align: center; vertical-align: middle; }
-        .badge-success-custom { background-color: #28a745; font-size: 0.9em; padding: 6px 10px; }
-        .badge-danger-custom { background-color: #dc3545; font-size: 0.9em; padding: 6px 10px; }
+        
+        /* TU DISEÑO ORIGINAL DE CONTENEDOR */
+        .container-box { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 40px; }
+        h2 { color: var(--color-vino); border-bottom: 2px solid var(--color-vino); padding-bottom: 10px; margin-top: 0;}
+        p { font-size: 15px; color: #555; margin-bottom: 25px; }
+        
+        /* TU TABLA ORIGINAL */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        th, td { padding: 15px; border: 1px solid #e0e0e0; text-align: center; }
+        th { background-color: var(--color-vino); color: white; font-weight: normal; }
+        .nombre-col { text-align: left; font-weight: bold; color: #444; background-color: #f9f9f9; }
+        
+        /* BOTONES Y ESTADOS */
+        .btn-submit { background-color: var(--color-vino); color: white; padding: 14px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 30px; width: 100%; transition: background 0.3s; }
+        .btn-submit:hover { background-color: #5c0f29; }
+        .estado-verde { color: white; background-color: #28a745; padding: 8px 12px; border-radius: 5px; font-size: 14px; font-weight: bold; display: inline-block; }
+        .estado-rojo { color: white; background-color: #dc3545; padding: 8px 12px; border-radius: 5px; font-size: 14px; font-weight: bold; display: inline-block; }
+        .flash-msg { background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 5px solid #28a745; }
+        
+        /* MENU SUPERIOR */
+        .top-menu { background-color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid var(--color-dorado); margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn-logout { background-color: var(--color-vino); color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; }
+        .btn-logout:hover { background-color: #5c0f29; color: white; }
     </style>
 </head>
 <body>
 
-    <!-- NAVEGACIÓN INSTITUCIONAL -->
-    <nav class="navbar navbar-light bg-white mb-4 borde-dorado-bottom shadow-sm py-2">
-        <div class="container d-flex justify-content-between align-items-center">
-            <!-- LOGOS INSTITUCIONALES -->
-            <img src="{{ url_for('static', filename='logos.png') }}" alt="Secretaría de Cultura y Turismo" style="height: 90px; width: auto; object-fit: contain;">
-            <a href="{{ url_for('logout') }}" class="btn btn-institucional btn-sm shadow-sm px-3 py-2">Cerrar Sesión</a>
-        </div>
-    </nav>
+    <!-- CABECERA INSTITUCIONAL -->
+    <div class="top-menu">
+        <img src="{{ url_for('static', filename='logos.png') }}" alt="Secretaría de Cultura y Turismo" style="height: 90px; width: auto; object-fit: contain;">
+        <a href="{{ url_for('logout') }}" class="btn-logout">Cerrar Sesión</a>
+    </div>
 
-    <div class="container pb-5">
-        
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 style="color: var(--color-vino); font-weight: bold; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">Análisis de Asistencias (PST)</h2>
-            <a href="{{ url_for('calificar_examenes') }}" class="btn btn-dorado shadow-sm py-2 px-4">Ir a Calificar Exámenes ➡</a>
+    <!-- CONTENEDOR ORIGINAL DE BÚSQUEDA -->
+    <div class="container-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2 style="border: none; margin: 0; padding: 0;">Análisis de Asistencias (PST)</h2>
+            <a href="{{ url_for('calificar_examenes') }}" style="color: var(--color-vino); font-weight: bold; text-decoration: none;">Ir a Calificar Exámenes ➡</a>
         </div>
+        <hr style="border: 1px solid var(--color-vino); margin-bottom: 25px;">
 
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <div class="alert alert-warning shadow-sm">
+                <div class="flash-msg">
                     <strong>Aviso:</strong> {{ messages[0] }}
                 </div>
             {% endif %}
         {% endwith %}
 
-        <!-- FORMULARIO DE FILTROS Y SUBIDA -->
-        <div class="card card-custom mb-4">
-            <div class="card-header card-header-custom py-3">
-                <h5 class="mb-0">Configuración de Búsqueda y Filtros</h5>
-            </div>
-            <div class="card-body p-4">
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold" style="color: var(--color-vino);">1. Sube el archivo de Asistencias (Excel general)</label>
-                            <input type="file" name="file" class="form-control" accept=".xlsx, .xls" required>
-                        </div>
+        <form method="POST" enctype="multipart/form-data">
+            <label class="form-label fw-bold">1. Sube el archivo de Asistencias (Excel general)</label>
+            <input type="file" name="file" class="form-control mb-4" accept=".xlsx, .xls" required>
+
+            <h5 class="fw-bold mt-4" style="color: var(--color-vino);">2. Filtros de Cursos Obligatorios (Opcional)</h5>
+            <p>Ingresa la fecha (DD/MM/AAAA) y una palabra clave del curso para filtrar. Deja en blanco los que no necesites.</p>
+
+            <div class="row">
+                {% for i in range(1, 5) %}
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold text-secondary">Filtro {{ i }}</label>
+                    <div class="d-flex gap-2">
+                        <input type="date" name="fecha_{{ i }}" class="form-control" value="{{ valores_formulario.get('fecha_' ~ i, '') }}">
+                        <input type="text" name="curso_{{ i }}" class="form-control" placeholder="Palabra clave del curso" value="{{ valores_formulario.get('curso_' ~ i, '') }}">
                     </div>
-
-                    <hr class="my-4">
-                    <h6 class="fw-bold mb-3" style="color: var(--color-vino);">2. Filtros de Cursos Obligatorios (Opcional)</h6>
-                    <p class="text-muted small mb-3">Ingresa la fecha (DD/MM/AAAA) y una palabra clave del curso para filtrar. Deja en blanco los que no necesites.</p>
-
-                    <div class="row g-3">
-                        {% for i in range(1, 5) %}
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded" style="background-color: #fcfcfc;">
-                                <label class="fw-bold text-secondary mb-2">Filtro {{ i }}</label>
-                                <div class="row">
-                                    <div class="col-sm-5">
-                                        <input type="date" name="fecha_{{ i }}" class="form-control form-control-sm" value="{{ valores_formulario.get('fecha_' ~ i, '') }}">
-                                    </div>
-                                    <div class="col-sm-7 mt-2 mt-sm-0">
-                                        <input type="text" name="curso_{{ i }}" class="form-control form-control-sm" placeholder="Palabra clave del curso" value="{{ valores_formulario.get('curso_' ~ i, '') }}">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="text-center mt-4">
-                        <button type="submit" class="btn btn-institucional py-2 px-5 fs-5 shadow-sm">Analizar Asistencias</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- RESULTADOS -->
-        {% if busqueda_realizada %}
-            <div class="card card-custom">
-                <div class="card-header card-header-custom py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Resultados del Análisis</h5>
-                    <span class="badge bg-light text-dark fs-6">{{ resultados|length }} Registros encontrados</span>
                 </div>
-                <div class="card-body p-0 table-responsive">
-                    {% if resultados %}
-                        <table class="table table-hover table-custom mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="text-start ps-4">Nombre Completo</th>
-                                    <th>Total Asistencias</th>
-                                    <th>Cursos Distintos</th>
-                                    <th>Meses Registrados</th>
-                                    <th>¿Asistencia Continua?</th>
-                                    <th>¿Cumple Meta (Apto)?</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for res in resultados %}
-                                <tr>
-                                    <td class="text-start ps-4 fw-bold text-secondary">{{ res.nombre }}</td>
-                                    <td><span class="badge bg-secondary fs-6">{{ res.cantidad_asistencias }}</span></td>
-                                    <td>{{ res.cantidad_cursos_distintos }}</td>
-                                    <td>{{ res.meses_registrados }}</td>
-                                    <td>
-                                        {% if res.es_continuo == 'Sí' %}
-                                            <span class="text-success fw-bold">✓ Sí</span>
-                                        {% else %}
-                                            <span class="text-danger fw-bold">✗ No</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if res.cumple_meta %}
-                                            <span class="badge badge-success-custom shadow-sm">✅ Apto</span>
-                                        {% else %}
-                                            <span class="badge badge-danger-custom shadow-sm">❌ No Apto</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <div class="p-5 text-center text-muted">
-                            <h5>No se encontraron registros que coincidan con los filtros.</h5>
-                        </div>
-                    {% endif %}
-                </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn-submit">Analizar Asistencias</button>
+        </form>
+    </div>
+
+    <!-- CONTENEDOR ORIGINAL DE RESULTADOS -->
+    {% if busqueda_realizada %}
+    <div class="container-box">
+        <h2>Resultados del Análisis</h2>
+        {% if resultados %}
+            <table>
+                <thead>
+                    <tr>
+                        <th class="nombre-col">Nombre Completo</th>
+                        <th>Total Asistencias</th>
+                        <th>Cursos Distintos</th>
+                        <th>Meses Registrados</th>
+                        <th>¿Asistencia Continua?</th>
+                        <th>¿Cumple Meta (Apto)?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in resultados %}
+                    <tr>
+                        <td class="nombre-col">{{ res.nombre }}</td>
+                        <td><strong>{{ res.cantidad_asistencias }}</strong></td>
+                        <td>{{ res.cantidad_cursos_distintos }}</td>
+                        <td>{{ res.meses_registrados }}</td>
+                        <td>
+                            {% if res.es_continuo == 'Sí' %}
+                                <span style="color: #28a745; font-weight: bold;">✓ Sí</span>
+                            {% else %}
+                                <span style="color: #dc3545; font-weight: bold;">✗ No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if res.cumple_meta %}
+                                <span class="estado-verde">✅ Apto</span>
+                            {% else %}
+                                <span class="estado-rojo">❌ No Apto</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div style="background-color: #f8d7da; color: #721c24; padding: 20px; border-radius: 5px; text-align: center; border: 1px solid #f5c6cb; margin-top: 20px;">
+                <strong>Aviso:</strong> No se encontraron registros que coincidan con los filtros.
             </div>
         {% endif %}
-
     </div>
+    {% endif %}
+
 </body>
 </html>
