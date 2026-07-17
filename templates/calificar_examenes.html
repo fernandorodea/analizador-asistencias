@@ -45,7 +45,7 @@
             {% endif %}
         {% endwith %}
 
-        <!-- FORMULARIO: Solo se muestra si aún no hay evaluaciones generadas -->
+        <!-- FORMULARIO -->
         {% if not evaluaciones %}
         <form method="POST" enctype="multipart/form-data" class="mt-4">
             <label class="fw-bold mb-2">Sube los 4 archivos Excel de los exámenes:</label>
@@ -125,7 +125,6 @@
                     <thead>
                         <tr>
                             <th class="nombre-col">Nombre del Prestador</th>
-                            <!-- AQUI ESTÁ LA MAGIA DE LOS NOMBRES DINÁMICOS -->
                             {% if nombres_examenes %}
                                 {% for nombre_examen in nombres_examenes %}
                                     <th>{{ nombre_examen }}</th>
@@ -137,6 +136,8 @@
                                 <th>Examen 4</th>
                             {% endif %}
                             <th>Resultado Final</th>
+                            <!-- NUEVA COLUMNA -->
+                            <th>Certificado</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -152,6 +153,16 @@
                                     <span class="estado-rojo">❌ {{ eval.estado }}</span>
                                 {% else %}
                                     <span class="estado-verde">✅ {{ eval.estado }}</span>
+                                {% endif %}
+                            </td>
+                            <!-- NUEVO BOTÓN DE ACCIÓN -->
+                            <td>
+                                {% if "No" not in eval.estado and "Error" not in eval.estado %}
+                                    <button class="btn btn-sm text-white shadow-sm" style="background-color: var(--color-dorado); font-weight: bold;" onclick="alert('Generando certificado para: {{ eval.nombre }}\n\n(Próximamente conectaremos esto con Python para descargar el archivo)')">
+                                        📄 Generar
+                                    </button>
+                                {% else %}
+                                    <span class="text-muted small">No disponible</span>
                                 {% endif %}
                             </td>
                         </tr>
