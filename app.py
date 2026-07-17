@@ -183,7 +183,6 @@ def dashboard():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    # Limpieza de memoria al entrar
     if request.method == 'GET':
         session.pop('candidatos_aptos', None)
         return render_template('dashboard.html', resultados=None, busqueda_realizada=False, valores_formulario={})
@@ -238,7 +237,6 @@ def calificar_examenes():
 
     candidatos = session.get('candidatos_aptos', [])
 
-    # Bloqueo si no hay personas en la memoria
     if not candidatos:
         flash('⚠️ No hay candidatos aptos en memoria. Por favor, sube y analiza las asistencias primero.')
         return redirect(url_for('dashboard'))
@@ -264,10 +262,15 @@ def calificar_examenes():
                 return 0.0
 
         notas_por_candidato = {limpiar_texto(nombre): [] for nombre in candidatos}
+        nombres_examenes = [] # Lista para guardar los nombres de las materias
 
         try:
             for file in archivos:
                 if file and allowed_file(file.filename):
+                    # Extraer nombre sin el .xlsx
+                    nombre_materia = file.filename.rsplit('.', 1)[0]
+                    nombres_examenes.append(nombre_materia)
+
                     df_examenes = pd.read_excel(file)
                     df_examenes.columns = df_examenes.columns.str.strip()
 
@@ -282,6 +285,16 @@ def calificar_examenes():
                             if not fila.empty:
                                 val = fila[col_puntuacion].iloc[0]
                                 notas_por_candidato[nombre_limpio].append(extraer_calificacion(val))
+                            else:
+                                # Si no encuentra a la persona en este archivo, le pone 0 para no desalinear las columnas
+                                notas_por_candidato[nombre_limpio].append(0.0)
+                    else:
+                        for nombre_limpio in notas_por_candidato.keys():
+                            notas_por_candidato[nombre_limpio].append(0.0)
+
+            # Rellenar nombres si subieron menos de 4
+            while len(nombres_examenes) < 4:
+                nombres_examenes.append(f"Examen {len(nombres_examenes) + 1}")
 
             evaluaciones = []
             for nombre in candidatos:
@@ -303,13 +316,13 @@ def calificar_examenes():
                 })
 
             flash('¡Exámenes cruzados y evaluados con éxito!')
-            return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=evaluaciones)
+            return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=evaluaciones, nombres_examenes=nombres_examenes[:4])
 
         except Exception as e:
             flash(f'Error al procesar los Excels. Detalle: {e}')
             return redirect(request.url)
 
-    return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=None)
+    return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=None, nombres_examenes=None)
 
 
 @app.route('/logout')
