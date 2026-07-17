@@ -30,6 +30,14 @@
             <h2>Análisis de Asistencias</h2>
         </div>
 
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-warning shadow-sm">
+                    <strong>Aviso:</strong> {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
         <form method="POST" enctype="multipart/form-data">
             <label class="fw-bold mb-2">1. Sube el archivo de Asistencias</label>
             <input type="file" name="file" class="form-control mb-4" accept=".xlsx, .xls" required>
@@ -41,14 +49,11 @@
                     <label class="fw-bold text-secondary small">Fecha del {{ i }}{{ 'er' if i==1 else 'do' if i==2 else 'er' if i==3 else 'to' }} Curso</label>
                     <input type="date" name="fecha_{{ i }}" class="form-control" value="{{ valores_formulario.get('fecha_' ~ i, '') }}">
                     <label class="fw-bold text-secondary small mt-2">Nombre del {{ i }}{{ 'er' if i==1 else 'do' if i==2 else 'er' if i==3 else 'to' }} Curso</label>
-                    <input type="text" name="curso_{{ i }}" class="form-control" placeholder="Ej. {{ ['Atención al turista', 'Manejo de quejas', 'Liderazgo', 'RCP y Primeros Auxilios'][i-1] }}" value="{{ valores_formulario.get('curso_' ~ i, '') }}">
+                    <input type="text" name="curso_{{ i }}" class="form-control" placeholder="Ej. Curso {{ i }}" value="{{ valores_formulario.get('curso_' ~ i, '') }}">
                 </div>
                 {% endfor %}
             </div>
             <button type="submit" class="btn text-white w-100 mt-3" style="background-color: var(--color-vino); font-weight: bold; padding: 12px;">Subir y Analizar Excel</button>
-            <div class="mt-3 text-center">
-                <a href="{{ url_for('calificar_examenes') }}" class="btn btn-outline-secondary w-100" style="border-width: 2px; font-weight: bold;">Ir al módulo de Calificar Exámenes</a>
-            </div>
         </form>
     </div>
 
@@ -65,6 +70,15 @@
             </div>
         </div>
         {% endfor %}
+        
+        <!-- BOTÓN QUE SOLO APARECE CUANDO HAY RESULTADOS -->
+        <hr class="my-4">
+        <div class="text-center">
+            <h5 style="color: var(--color-vino);">¿Quieres evaluar los exámenes de los candidatos aptos?</h5>
+            <a href="{{ url_for('calificar_examenes') }}" class="btn text-white mt-2 px-5 py-2" style="background-color: var(--color-dorado); font-weight: bold; font-size: 1.1em;">
+                Ir a Calificar Exámenes ➡
+            </a>
+        </div>
     </div>
     {% endif %}
 </body>
