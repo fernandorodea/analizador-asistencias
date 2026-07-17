@@ -10,7 +10,17 @@
             --color-vino: #84142D;
             --color-dorado: #C4A77D;
         }
-        body { background-color: #f4f4f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background-color: #f4f4f9; 
+            background-image: url("{{ url_for('static', filename='fondo.png') }}");
+            background-repeat: repeat;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
         .login-wrapper { width: 100%; max-width: 450px; padding: 20px; }
         .login-container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid var(--color-vino); }
         .btn-vino { background-color: var(--color-vino); color: white; width: 100%; font-weight: bold; }
