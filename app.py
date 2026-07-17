@@ -34,6 +34,7 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+# --- FUNCIONES DE ANÁLISIS ---
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
@@ -46,6 +47,7 @@ def analizar_asistencias(filepath, filtros_pares=None):
     if filtros_pares:
         mascara_global = pd.Series(False, index=df.index)
         tiene_al_menos_un_filtro = False
+
         for par in filtros_pares:
             f = par.get('fecha')
             c = par.get('curso')
@@ -65,7 +67,8 @@ def analizar_asistencias(filepath, filtros_pares=None):
         return []
 
     def limpiar_texto(val):
-        if pd.isna(val): return ""
+        if pd.isna(val):
+            return ""
         val = " ".join(str(val).strip().split())
         return "".join(c for c in unicodedata.normalize('NFD', val) if unicodedata.category(c) != 'Mn').upper()
 
@@ -106,43 +109,81 @@ def analizar_asistencias(filepath, filtros_pares=None):
     
     return sorted(resultados, key=lambda x: x['cantidad_asistencias'], reverse=True)
 
+
+# --- RUTAS DE LA PÁGINA ---
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         usuario = request.form.get('username')
         password = request.form.get('password')
+        
         conn = get_db_connection()
         user = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
         conn.close()
+        
         if user and check_password_hash(user['password'], password):
             session['logged_in'] = True
             session['username'] = user['username']
             return redirect(url_for('dashboard'))
         else:
-            flash('Usuario o contraseña incorrectos.')
+            flash('Usuario o contraseña incorrectos. Intenta de nuevo.')
+    
     return render_template('login.html')
+
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
         usuario = request.form.get('username')
         password = request.form.get('password')
+        
         conn = get_db_connection()
-        if conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone():
-            flash('Ese usuario ya existe.')
+        user_exists = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
+        
+        if user_exists:
+            flash('Ese nombre de usuario ya existe. Por favor elige otro.')
         else:
-            conn.execute("INSERT INTO usuarios (username, password) VALUES (?, ?)", (usuario, generate_password_hash(password)))
+            hashed_pw = generate_password_hash(password)
+            conn.execute("INSERT INTO usuarios (username, password) VALUES (?, ?)", (usuario, hashed_pw))
             conn.commit()
-            flash('Usuario registrado.')
+            flash('Usuario registrado exitosamente. Ahora puedes iniciar sesión.')
+            conn.close()
             return redirect(url_for('login'))
         conn.close()
+        
     return render_template('registro.html')
+
+
+@app.route('/recuperar', methods=['GET', 'POST'])
+def recuperar():
+    if request.method == 'POST':
+        usuario = request.form.get('username')
+        nueva_password = request.form.get('new_password')
+        
+        conn = get_db_connection()
+        user = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
+        
+        if user:
+            hashed_pw = generate_password_hash(nueva_password)
+            conn.execute("UPDATE usuarios SET password = ? WHERE username = ?", (hashed_pw, usuario))
+            conn.commit()
+            flash('Contraseña actualizada con éxito. Inicia sesión con tu nueva contraseña.')
+            conn.close()
+            return redirect(url_for('login'))
+        else:
+            flash('No se encontró ningún usuario con ese nombre.')
+        conn.close()
+        
+    return render_template('recuperar.html')
+
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
+    # Limpieza de memoria al entrar
     if request.method == 'GET':
         session.pop('candidatos_aptos', None)
         return render_template('dashboard.html', resultados=None, busqueda_realizada=False, valores_formulario={})
@@ -160,36 +201,51 @@ def dashboard():
             valores_formulario[f'curso_{i}'] = curso
             filtros_pares.append({'fecha': fecha, 'curso': curso})
 
-        if 'file' in request.files and request.files['file'].filename != '':
-            file = request.files['file']
-            if allowed_file(file.filename):
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
-                file.save(filepath)
-                try:
-                    resultados = analizar_asistencias(filepath, filtros_pares)
-                    busqueda_realizada = True
-                    session['candidatos_aptos'] = [res['nombre'] for res in resultados if res['cumple_meta']]
-                except Exception as e:
-                    flash(f'Error: {e}')
-                if os.path.exists(filepath):
-                    os.remove(filepath)
-    
+        if 'file' not in request.files:
+            flash('No se seleccionó ningún archivo')
+            return render_template('dashboard.html', resultados=None, busqueda_realizada=False, valores_formulario=valores_formulario)
+            
+        file = request.files['file']
+        if file.filename == '':
+            flash('No se seleccionó ningún archivo')
+            return render_template('dashboard.html', resultados=None, busqueda_realizada=False, valores_formulario=valores_formulario)
+            
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            try:
+                resultados = analizar_asistencias(filepath, filtros_pares)
+                busqueda_realizada = True
+                
+                candidatos_aptos = [res['nombre'] for res in resultados if res['cumple_meta']]
+                session['candidatos_aptos'] = candidatos_aptos
+                
+            except Exception as e:
+                flash(f'Error al procesar el Excel. Detalle: {e}')
+            
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
     return render_template('dashboard.html', resultados=resultados, busqueda_realizada=busqueda_realizada, valores_formulario=valores_formulario)
+
 
 @app.route('/calificar_examenes', methods=['GET', 'POST'])
 def calificar_examenes():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    
+
     candidatos = session.get('candidatos_aptos', [])
 
-    # LÓGICA DE BLOQUEO: Si no hay personas, te bloquea y te regresa al dashboard
+    # Bloqueo si no hay personas en la memoria
     if not candidatos:
         flash('⚠️ No hay candidatos aptos en memoria. Por favor, sube y analiza las asistencias primero.')
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
         archivos = request.files.getlist('file_examenes')
+
         if not archivos or archivos[0].filename == '':
             flash('No se seleccionó ningún archivo de exámenes.')
             return redirect(request.url)
@@ -214,11 +270,13 @@ def calificar_examenes():
                 if file and allowed_file(file.filename):
                     df_examenes = pd.read_excel(file)
                     df_examenes.columns = df_examenes.columns.str.strip()
+
                     col_nombre = next((c for c in df_examenes.columns if 'nombre' in c.lower()), None)
                     col_puntuacion = next((c for c in df_examenes.columns if 'puntuaci' in c.lower()), None)
 
                     if col_nombre and col_puntuacion:
                         df_examenes['Nombre_Limpio'] = df_examenes[col_nombre].apply(limpiar_texto)
+
                         for nombre_limpio in notas_por_candidato.keys():
                             fila = df_examenes[df_examenes['Nombre_Limpio'] == nombre_limpio]
                             if not fila.empty:
@@ -229,6 +287,7 @@ def calificar_examenes():
             for nombre in candidatos:
                 nombre_limpio = limpiar_texto(nombre)
                 notas = notas_por_candidato[nombre_limpio]
+
                 while len(notas) < 4:
                     notas.append(0.0)
 
@@ -252,9 +311,11 @@ def calificar_examenes():
 
     return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=None)
 
+
 @app.route('/logout')
 def logout():
-    session.clear()
+    session.pop('logged_in', None)
+    session.pop('username', None)
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
