@@ -32,6 +32,7 @@
 </head>
 <body>
 
+    <!-- CABECERA INSTITUCIONAL -->
     <div class="top-menu">
         <img src="{{ url_for('static', filename='logos.png') }}" alt="Logos" style="height: 90px; width: auto; object-fit: contain;">
         <a href="{{ url_for('logout') }}" class="btn-logout">Cerrar Sesión</a>
@@ -60,7 +61,14 @@
                 {% endfor %}
             </div>
 
+            <!-- BOTONES DE ACCIÓN -->
             <button type="submit" class="btn text-white w-100 mt-3" style="background-color: var(--color-vino); font-weight: bold; padding: 12px;">Subir y Analizar Excel</button>
+            
+            <div class="mt-3 text-center">
+                <a href="{{ url_for('calificar_examenes') }}" class="btn btn-outline-secondary w-100" style="border-width: 2px; font-weight: bold;">
+                    Ir al módulo de Calificar Exámenes
+                </a>
+            </div>
         </form>
     </div>
 
