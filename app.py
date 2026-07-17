@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'clave_secreta_para_sesiones' 
+app.secret_key = 'clave_secreta_para_sesiones'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'xlsx', 'xls'}
 
@@ -34,7 +34,6 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# --- FUNCIONES DE ANÁLISIS ---
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
@@ -47,7 +46,6 @@ def analizar_asistencias(filepath, filtros_pares=None):
     if filtros_pares:
         mascara_global = pd.Series(False, index=df.index)
         tiene_al_menos_un_filtro = False
-
         for par in filtros_pares:
             f = par.get('fecha')
             c = par.get('curso')
@@ -67,8 +65,7 @@ def analizar_asistencias(filepath, filtros_pares=None):
         return []
 
     def limpiar_texto(val):
-        if pd.isna(val):
-            return ""
+        if pd.isna(val): return ""
         val = " ".join(str(val).strip().split())
         return "".join(c for c in unicodedata.normalize('NFD', val) if unicodedata.category(c) != 'Mn').upper()
 
@@ -109,7 +106,6 @@ def analizar_asistencias(filepath, filtros_pares=None):
     
     return sorted(resultados, key=lambda x: x['cantidad_asistencias'], reverse=True)
 
-# --- RUTAS ---
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -132,14 +128,12 @@ def registro():
         usuario = request.form.get('username')
         password = request.form.get('password')
         conn = get_db_connection()
-        user_exists = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
-        if user_exists:
+        if conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone():
             flash('Ese usuario ya existe.')
         else:
             conn.execute("INSERT INTO usuarios (username, password) VALUES (?, ?)", (usuario, generate_password_hash(password)))
             conn.commit()
             flash('Usuario registrado.')
-            conn.close()
             return redirect(url_for('login'))
         conn.close()
     return render_template('registro.html')
@@ -149,7 +143,6 @@ def dashboard():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    # Limpieza: Si entramos por GET, limpiamos búsquedas anteriores
     if request.method == 'GET':
         session.pop('candidatos_aptos', None)
         return render_template('dashboard.html', resultados=None, busqueda_realizada=False, valores_formulario={})
@@ -170,8 +163,7 @@ def dashboard():
         if 'file' in request.files and request.files['file'].filename != '':
             file = request.files['file']
             if allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
                 file.save(filepath)
                 try:
                     resultados = analizar_asistencias(filepath, filtros_pares)
@@ -188,13 +180,77 @@ def dashboard():
 def calificar_examenes():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+    
     candidatos = session.get('candidatos_aptos', [])
+
+    # LÓGICA DE BLOQUEO: Si no hay personas, te bloquea y te regresa al dashboard
+    if not candidatos:
+        flash('⚠️ No hay candidatos aptos en memoria. Por favor, sube y analiza las asistencias primero.')
+        return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
         archivos = request.files.getlist('file_examenes')
-        # Lógica de procesamiento omitida por brevedad, usa la tuya anterior
-        return render_template('calificar_examenes.html', candidatos=candidatos)
-    return render_template('calificar_examenes.html', candidatos=candidatos)
+        if not archivos or archivos[0].filename == '':
+            flash('No se seleccionó ningún archivo de exámenes.')
+            return redirect(request.url)
+
+        def limpiar_texto(val):
+            if pd.isna(val): return ""
+            val = " ".join(str(val).strip().split())
+            return "".join(c for c in unicodedata.normalize('NFD', val) if unicodedata.category(c) != 'Mn').upper()
+
+        def extraer_calificacion(val):
+            if pd.isna(val): return 0.0
+            try:
+                numero = str(val).split('/')[0].strip()
+                return float(numero)
+            except:
+                return 0.0
+
+        notas_por_candidato = {limpiar_texto(nombre): [] for nombre in candidatos}
+
+        try:
+            for file in archivos:
+                if file and allowed_file(file.filename):
+                    df_examenes = pd.read_excel(file)
+                    df_examenes.columns = df_examenes.columns.str.strip()
+                    col_nombre = next((c for c in df_examenes.columns if 'nombre' in c.lower()), None)
+                    col_puntuacion = next((c for c in df_examenes.columns if 'puntuaci' in c.lower()), None)
+
+                    if col_nombre and col_puntuacion:
+                        df_examenes['Nombre_Limpio'] = df_examenes[col_nombre].apply(limpiar_texto)
+                        for nombre_limpio in notas_por_candidato.keys():
+                            fila = df_examenes[df_examenes['Nombre_Limpio'] == nombre_limpio]
+                            if not fila.empty:
+                                val = fila[col_puntuacion].iloc[0]
+                                notas_por_candidato[nombre_limpio].append(extraer_calificacion(val))
+
+            evaluaciones = []
+            for nombre in candidatos:
+                nombre_limpio = limpiar_texto(nombre)
+                notas = notas_por_candidato[nombre_limpio]
+                while len(notas) < 4:
+                    notas.append(0.0)
+
+                if min(notas[:4]) >= 8:
+                    estado = "Certificado"
+                else:
+                    estado = "No Certificado (Requiere mínimo 8 en todos)"
+
+                evaluaciones.append({
+                    'nombre': nombre,
+                    'estado': estado,
+                    'notas': notas[:4]
+                })
+
+            flash('¡Exámenes cruzados y evaluados con éxito!')
+            return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=evaluaciones)
+
+        except Exception as e:
+            flash(f'Error al procesar los Excels. Detalle: {e}')
+            return redirect(request.url)
+
+    return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=None)
 
 @app.route('/logout')
 def logout():
