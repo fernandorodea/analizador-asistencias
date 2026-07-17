@@ -48,17 +48,78 @@
         <!-- FORMULARIO: Solo se muestra si aún no hay evaluaciones generadas -->
         {% if not evaluaciones %}
         <form method="POST" enctype="multipart/form-data" class="mt-4">
-            <label class="fw-bold mb-2">Sube los archivos Excel de los exámenes (puedes subir varios a la vez):</label>
-            <input type="file" name="file_examenes" class="form-control" accept=".xlsx, .xls" multiple required>
-            <button type="submit" class="btn text-white w-100 mt-3" style="background-color: var(--color-vino); font-weight: bold; padding: 12px;">Cruzar Calificaciones</button>
+            <label class="fw-bold mb-2">Sube los 4 archivos Excel de los exámenes:</label>
+            
+            <!-- INPUT VISUAL (El usuario interactúa con este) -->
+            <input type="file" id="file_input" class="form-control mb-3" accept=".xlsx, .xls" multiple onchange="agregarArchivos()">
+            
+            <!-- LISTA DONDE SE VERÁN LOS ARCHIVOS -->
+            <ul id="lista_archivos" class="list-group mb-3 shadow-sm"></ul>
+            
+            <!-- INPUT OCULTO (Este es el que realmente manda los datos a Python) -->
+            <input type="file" name="file_examenes" id="file_real" multiple style="display: none;" required>
+
+            <button type="submit" class="btn text-white w-100 mt-2" style="background-color: var(--color-vino); font-weight: bold; padding: 12px;">Cruzar Calificaciones</button>
         </form>
+
+        <!-- SCRIPT PARA GESTIONAR LA LISTA DE ARCHIVOS -->
+        <script>
+            let archivosSeleccionados = [];
+
+            function agregarArchivos() {
+                const input = document.getElementById('file_input');
+                
+                // Añadir los archivos nuevos al arreglo
+                for(let i = 0; i < input.files.length; i++) {
+                    // Evitar que suba el mismo archivo dos veces
+                    if (!archivosSeleccionados.some(f => f.name === input.files[i].name)) {
+                        archivosSeleccionados.push(input.files[i]);
+                    }
+                }
+                
+                // Limitar a máximo 4 archivos
+                if (archivosSeleccionados.length > 4) {
+                    alert('Solo necesitas subir 4 exámenes. Se omitirán los adicionales.');
+                    archivosSeleccionados = archivosSeleccionados.slice(0, 4);
+                }
+
+                // Limpiar el input visible para poder seleccionar otro
+                input.value = ''; 
+                actualizarVista();
+            }
+
+            function eliminarArchivo(index) {
+                archivosSeleccionados.splice(index, 1);
+                actualizarVista();
+            }
+
+            function actualizarVista() {
+                const lista = document.getElementById('lista_archivos');
+                lista.innerHTML = '';
+                
+                archivosSeleccionados.forEach((file, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center bg-light';
+                    li.innerHTML = `
+                        <span class="text-secondary fw-bold">📊 ${file.name}</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger fw-bold" onclick="eliminarArchivo(${index})">✖ Eliminar</button>
+                    `;
+                    lista.appendChild(li);
+                });
+
+                // Pasar los archivos de la memoria al input oculto para enviarlos
+                const dt = new DataTransfer();
+                archivosSeleccionados.forEach(file => dt.items.add(file));
+                document.getElementById('file_real').files = dt.files;
+            }
+        </script>
         {% endif %}
 
         <!-- LISTA PREVIA: Muestra a los aptos antes de calificar -->
         {% if candidatos and not evaluaciones %}
         <div class="mt-5">
             <h4>Prestadores Aptos detectados en memoria:</h4>
-            <div class="border rounded p-3 mt-3 bg-light">
+            <div class="border rounded p-3 mt-3 bg-light shadow-sm">
                 {% for nombre in candidatos %}
                 <div class="py-2 border-bottom fw-bold text-secondary">👤 {{ nombre }}</div>
                 {% endfor %}
@@ -104,7 +165,7 @@
             </div>
             
             <div class="text-center mt-4">
-                <a href="{{ url_for('dashboard') }}" class="btn text-white px-5 py-2" style="background-color: var(--color-dorado); font-weight: bold;">
+                <a href="{{ url_for('dashboard') }}" class="btn text-white px-5 py-2 shadow-sm" style="background-color: var(--color-dorado); font-weight: bold;">
                     Volver al Inicio
                 </a>
             </div>
