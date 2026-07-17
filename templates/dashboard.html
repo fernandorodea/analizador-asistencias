@@ -12,11 +12,20 @@
         .btn-logout { background-color: var(--color-vino); color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; }
         .container-box { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 40px; }
         h2 { color: var(--color-vino); font-weight: bold; }
-        .persona-card { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid var(--color-dorado); }
-        .nombre-txt { font-weight: bold; color: #555; font-size: 1.1em; }
-        .curso-txt { font-weight: bold; color: #333; }
+        
+        /* ESTILO TARJETAS DE PERSONA */
+        .persona-card { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px; }
+        .borde-apto { border-left: 6px solid #198754; } /* Borde verde para los que cumplen */
+        .borde-incompleto { border-left: 6px solid #dc3545; } /* Borde rojo para los que no */
+        
+        .nombre-txt { font-weight: bold; color: #333; font-size: 1.1em; }
+        .curso-txt { font-weight: bold; color: #555; font-size: 0.9em; }
+        
+        /* ETIQUETAS */
         .badge-info { background-color: #6c757d; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.85em; margin-right: 5px; }
         .badge-dorado { background-color: var(--color-dorado); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.85em; }
+        .etiqueta-apto { background-color: #d1e7dd; color: #0f5132; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; margin-left: 10px; border: 1px solid #badbcc; }
+        .etiqueta-incompleto { background-color: #f8d7da; color: #842029; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; margin-left: 10px; border: 1px solid #f5c2c7; }
     </style>
 </head>
 <body>
@@ -44,7 +53,6 @@
 
             <h5 class="fw-bold mb-3" style="color: var(--color-vino);">2. Empareja tus Fechas y Cursos (Opcional)</h5>
             
-            <!-- AQUI ESTÁ EL CAMBIO: Fechas a la izquierda, Cursos a la derecha -->
             {% for i in range(1, 5) %}
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -66,16 +74,29 @@
     <div class="container-box">
         <h4>Resultados encontrados</h4>
         {% for res in resultados %}
-        <div class="persona-card d-flex justify-content-between align-items-center">
-            <span class="nombre-txt">{{ res.nombre }}</span>
-            <div class="text-end">
-                <div class="curso-txt mb-1">{{ res.cursos }}</div>
+        <!-- Aquí evaluamos si cumple la meta para asignarle el color del borde (verde o rojo) -->
+        <div class="persona-card d-flex justify-content-between align-items-center {% if res.cumple_meta %}borde-apto{% else %}borde-incompleto{% endif %} shadow-sm">
+            
+            <div class="d-flex align-items-center">
+                <span class="nombre-txt">{{ res.nombre }}</span>
+                <!-- Aquí colocamos la etiqueta al lado del nombre -->
+                {% if res.cumple_meta %}
+                    <span class="etiqueta-apto">✅ Apto</span>
+                {% else %}
+                    <span class="etiqueta-incompleto">❌ Incompleto</span>
+                {% endif %}
+            </div>
+
+            <div class="text-end" style="max-width: 50%;">
+                <div class="curso-txt mb-2 text-truncate" title="{{ res.cursos }}">{{ res.cursos }}</div>
                 <span class="badge-info">Total asistencias: {{ res.cantidad_asistencias }}</span>
                 <span class="badge-dorado">Cursos distintos: {{ res.cantidad_cursos_distintos }}</span>
             </div>
+            
         </div>
         {% endfor %}
         
+        <!-- BOTÓN QUE SOLO APARECE CUANDO HAY RESULTADOS -->
         <hr class="my-4">
         <div class="text-center">
             <h5 style="color: var(--color-vino);">¿Quieres evaluar los exámenes de los candidatos aptos?</h5>
