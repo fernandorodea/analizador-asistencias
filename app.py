@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import sqlite3
 import unicodedata
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -117,7 +118,6 @@ def login():
     if request.method == 'POST':
         usuario = request.form.get('username')
         password = request.form.get('password')
-        
         conn = get_db_connection()
         user = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
         conn.close()
@@ -131,17 +131,13 @@ def login():
     
     return render_template('login.html')
 
-
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
         usuario = request.form.get('username')
         password = request.form.get('password')
-        
         conn = get_db_connection()
-        user_exists = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
-        
-        if user_exists:
+        if conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone():
             flash('Ese nombre de usuario ya existe. Por favor elige otro.')
         else:
             hashed_pw = generate_password_hash(password)
@@ -151,19 +147,15 @@ def registro():
             conn.close()
             return redirect(url_for('login'))
         conn.close()
-        
     return render_template('registro.html')
-
 
 @app.route('/recuperar', methods=['GET', 'POST'])
 def recuperar():
     if request.method == 'POST':
         usuario = request.form.get('username')
         nueva_password = request.form.get('new_password')
-        
         conn = get_db_connection()
         user = conn.execute("SELECT * FROM usuarios WHERE username = ?", (usuario,)).fetchone()
-        
         if user:
             hashed_pw = generate_password_hash(nueva_password)
             conn.execute("UPDATE usuarios SET password = ? WHERE username = ?", (hashed_pw, usuario))
@@ -174,9 +166,7 @@ def recuperar():
         else:
             flash('No se encontró ningún usuario con ese nombre.')
         conn.close()
-        
     return render_template('recuperar.html')
-
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
@@ -193,12 +183,23 @@ def dashboard():
     
     if request.method == 'POST':
         filtros_pares = []
+        cursos_guardados = []
+        fechas_guardadas = []
+        fecha_4 = ""
+
         for i in range(1, 5):
             fecha = request.form.get(f'fecha_{i}', '')
             curso = request.form.get(f'curso_{i}', '')
             valores_formulario[f'fecha_{i}'] = fecha
             valores_formulario[f'curso_{i}'] = curso
             filtros_pares.append({'fecha': fecha, 'curso': curso})
+            
+            if curso:
+                cursos_guardados.append(curso)
+            if fecha:
+                fechas_guardadas.append(fecha)
+            if i == 4:
+                fecha_4 = fecha
 
         if 'file' not in request.files:
             flash('No se seleccionó ningún archivo')
@@ -218,8 +219,11 @@ def dashboard():
                 resultados = analizar_asistencias(filepath, filtros_pares)
                 busqueda_realizada = True
                 
-                candidatos_aptos = [res['nombre'] for res in resultados if res['cumple_meta']]
-                session['candidatos_aptos'] = candidatos_aptos
+                # GUARDAR VARIABLES PARA EL CERTIFICADO
+                session['candidatos_aptos'] = [res['nombre'] for res in resultados if res['cumple_meta']]
+                session['cert_cursos'] = cursos_guardados
+                session['cert_fechas'] = fechas_guardadas
+                session['cert_fecha_final'] = fecha_4
                 
             except Exception as e:
                 flash(f'Error al procesar el Excel. Detalle: {e}')
@@ -229,21 +233,18 @@ def dashboard():
 
     return render_template('dashboard.html', resultados=resultados, busqueda_realizada=busqueda_realizada, valores_formulario=valores_formulario)
 
-
 @app.route('/calificar_examenes', methods=['GET', 'POST'])
 def calificar_examenes():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
     candidatos = session.get('candidatos_aptos', [])
-
     if not candidatos:
         flash('⚠️ No hay candidatos aptos en memoria. Por favor, sube y analiza las asistencias primero.')
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
         archivos = request.files.getlist('file_examenes')
-
         if not archivos or archivos[0].filename == '':
             flash('No se seleccionó ningún archivo de exámenes.')
             return redirect(request.url)
@@ -262,12 +263,11 @@ def calificar_examenes():
                 return 0.0
 
         notas_por_candidato = {limpiar_texto(nombre): [] for nombre in candidatos}
-        nombres_examenes = [] # Lista para guardar los nombres de las materias
+        nombres_examenes = []
 
         try:
             for file in archivos:
                 if file and allowed_file(file.filename):
-                    # Extraer nombre sin el .xlsx
                     nombre_materia = file.filename.rsplit('.', 1)[0]
                     nombres_examenes.append(nombre_materia)
 
@@ -279,20 +279,17 @@ def calificar_examenes():
 
                     if col_nombre and col_puntuacion:
                         df_examenes['Nombre_Limpio'] = df_examenes[col_nombre].apply(limpiar_texto)
-
                         for nombre_limpio in notas_por_candidato.keys():
                             fila = df_examenes[df_examenes['Nombre_Limpio'] == nombre_limpio]
                             if not fila.empty:
                                 val = fila[col_puntuacion].iloc[0]
                                 notas_por_candidato[nombre_limpio].append(extraer_calificacion(val))
                             else:
-                                # Si no encuentra a la persona en este archivo, le pone 0 para no desalinear las columnas
                                 notas_por_candidato[nombre_limpio].append(0.0)
                     else:
                         for nombre_limpio in notas_por_candidato.keys():
                             notas_por_candidato[nombre_limpio].append(0.0)
 
-            # Rellenar nombres si subieron menos de 4
             while len(nombres_examenes) < 4:
                 nombres_examenes.append(f"Examen {len(nombres_examenes) + 1}")
 
@@ -300,7 +297,6 @@ def calificar_examenes():
             for nombre in candidatos:
                 nombre_limpio = limpiar_texto(nombre)
                 notas = notas_por_candidato[nombre_limpio]
-
                 while len(notas) < 4:
                     notas.append(0.0)
 
@@ -309,11 +305,7 @@ def calificar_examenes():
                 else:
                     estado = "No Certificado (Requiere mínimo 8 en todos)"
 
-                evaluaciones.append({
-                    'nombre': nombre,
-                    'estado': estado,
-                    'notas': notas[:4]
-                })
+                evaluaciones.append({'nombre': nombre, 'estado': estado, 'notas': notas[:4]})
 
             flash('¡Exámenes cruzados y evaluados con éxito!')
             return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=evaluaciones, nombres_examenes=nombres_examenes[:4])
@@ -324,6 +316,54 @@ def calificar_examenes():
 
     return render_template('calificar_examenes.html', candidatos=candidatos, evaluaciones=None, nombres_examenes=None)
 
+@app.route('/certificado/<nombre>')
+def certificado(nombre):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    meses_dict = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+    
+    # 1. TEXTO DE LOS CURSOS
+    cursos_lista = session.get('cert_cursos', [])
+    if len(cursos_lista) > 1:
+        cursos_str = ", ".join(cursos_lista[:-1]) + " y " + cursos_lista[-1]
+    elif len(cursos_lista) == 1:
+        cursos_str = cursos_lista[0]
+    else:
+        cursos_str = "los cursos correspondientes"
+
+    # 2. TEXTO DE LOS MESES
+    fechas_lista = session.get('cert_fechas', [])
+    meses_unicos = []
+    for f in fechas_lista:
+        try:
+            m = datetime.strptime(f, '%Y-%m-%d').month
+            nombre_mes = meses_dict[m - 1]
+            if nombre_mes not in meses_unicos:
+                meses_unicos.append(nombre_mes)
+        except:
+            pass
+            
+    if len(meses_unicos) > 1:
+        meses_str = ", ".join(meses_unicos[:-1]) + " y " + meses_unicos[-1]
+    elif len(meses_unicos) == 1:
+        meses_str = meses_unicos[0]
+    else:
+        meses_str = ""
+
+    # 3. FECHA FINAL DEL 4TO CURSO
+    fecha_4 = session.get('cert_fecha_final', '')
+    if fecha_4:
+        try:
+            dt = datetime.strptime(fecha_4, '%Y-%m-%d')
+            fecha_formateada = f"{dt.day} de {meses_dict[dt.month - 1]} del {dt.year}"
+        except:
+            fecha_formateada = ""
+    else:
+        hoy = datetime.now()
+        fecha_formateada = f"{hoy.day} de {meses_dict[hoy.month - 1]} del {hoy.year}"
+    
+    return render_template('certificado.html', nombre=nombre, cursos=cursos_str, meses=meses_str, fecha_final=fecha_formateada)
 
 @app.route('/logout')
 def logout():
