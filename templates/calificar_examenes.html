@@ -50,40 +50,30 @@
         <form method="POST" enctype="multipart/form-data" class="mt-4">
             <label class="fw-bold mb-2">Sube los 4 archivos Excel de los exámenes:</label>
             
-            <!-- INPUT VISUAL (El usuario interactúa con este) -->
             <input type="file" id="file_input" class="form-control mb-3" accept=".xlsx, .xls" multiple onchange="agregarArchivos()">
-            
-            <!-- LISTA DONDE SE VERÁN LOS ARCHIVOS -->
             <ul id="lista_archivos" class="list-group mb-3 shadow-sm"></ul>
-            
-            <!-- INPUT OCULTO (Este es el que realmente manda los datos a Python) -->
             <input type="file" name="file_examenes" id="file_real" multiple style="display: none;" required>
 
             <button type="submit" class="btn text-white w-100 mt-2" style="background-color: var(--color-vino); font-weight: bold; padding: 12px;">Cruzar Calificaciones</button>
         </form>
 
-        <!-- SCRIPT PARA GESTIONAR LA LISTA DE ARCHIVOS -->
         <script>
             let archivosSeleccionados = [];
 
             function agregarArchivos() {
                 const input = document.getElementById('file_input');
                 
-                // Añadir los archivos nuevos al arreglo
                 for(let i = 0; i < input.files.length; i++) {
-                    // Evitar que suba el mismo archivo dos veces
                     if (!archivosSeleccionados.some(f => f.name === input.files[i].name)) {
                         archivosSeleccionados.push(input.files[i]);
                     }
                 }
                 
-                // Limitar a máximo 4 archivos
                 if (archivosSeleccionados.length > 4) {
                     alert('Solo necesitas subir 4 exámenes. Se omitirán los adicionales.');
                     archivosSeleccionados = archivosSeleccionados.slice(0, 4);
                 }
 
-                // Limpiar el input visible para poder seleccionar otro
                 input.value = ''; 
                 actualizarVista();
             }
@@ -107,7 +97,6 @@
                     lista.appendChild(li);
                 });
 
-                // Pasar los archivos de la memoria al input oculto para enviarlos
                 const dt = new DataTransfer();
                 archivosSeleccionados.forEach(file => dt.items.add(file));
                 document.getElementById('file_real').files = dt.files;
@@ -115,7 +104,7 @@
         </script>
         {% endif %}
 
-        <!-- LISTA PREVIA: Muestra a los aptos antes de calificar -->
+        <!-- LISTA PREVIA -->
         {% if candidatos and not evaluaciones %}
         <div class="mt-5">
             <h4>Prestadores Aptos detectados en memoria:</h4>
@@ -127,7 +116,7 @@
         </div>
         {% endif %}
 
-        <!-- TABLA DE RESULTADOS: Solo se muestra después de procesar los Excels -->
+        <!-- TABLA DE RESULTADOS -->
         {% if evaluaciones %}
         <div class="mt-5">
             <h4>Resultados Finales de Certificación</h4>
@@ -136,10 +125,17 @@
                     <thead>
                         <tr>
                             <th class="nombre-col">Nombre del Prestador</th>
-                            <th>Examen 1</th>
-                            <th>Examen 2</th>
-                            <th>Examen 3</th>
-                            <th>Examen 4</th>
+                            <!-- AQUI ESTÁ LA MAGIA DE LOS NOMBRES DINÁMICOS -->
+                            {% if nombres_examenes %}
+                                {% for nombre_examen in nombres_examenes %}
+                                    <th>{{ nombre_examen }}</th>
+                                {% endfor %}
+                            {% else %}
+                                <th>Examen 1</th>
+                                <th>Examen 2</th>
+                                <th>Examen 3</th>
+                                <th>Examen 4</th>
+                            {% endif %}
                             <th>Resultado Final</th>
                         </tr>
                     </thead>
