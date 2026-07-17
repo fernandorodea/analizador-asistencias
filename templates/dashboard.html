@@ -42,18 +42,23 @@
             <label class="fw-bold mb-2">1. Sube el archivo de Asistencias</label>
             <input type="file" name="file" class="form-control mb-4" accept=".xlsx, .xls" required>
 
-            <h5 class="fw-bold" style="color: var(--color-vino);">2. Empareja tus Fechas y Cursos (Opcional)</h5>
-            <div class="row">
-                {% for i in range(1, 5) %}
-                <div class="col-md-6 mb-3">
+            <h5 class="fw-bold mb-3" style="color: var(--color-vino);">2. Empareja tus Fechas y Cursos (Opcional)</h5>
+            
+            <!-- AQUI ESTÁ EL CAMBIO: Fechas a la izquierda, Cursos a la derecha -->
+            {% for i in range(1, 5) %}
+            <div class="row mb-3">
+                <div class="col-md-6">
                     <label class="fw-bold text-secondary small">Fecha del {{ i }}{{ 'er' if i==1 else 'do' if i==2 else 'er' if i==3 else 'to' }} Curso</label>
                     <input type="date" name="fecha_{{ i }}" class="form-control" value="{{ valores_formulario.get('fecha_' ~ i, '') }}">
-                    <label class="fw-bold text-secondary small mt-2">Nombre del {{ i }}{{ 'er' if i==1 else 'do' if i==2 else 'er' if i==3 else 'to' }} Curso</label>
+                </div>
+                <div class="col-md-6">
+                    <label class="fw-bold text-secondary small">Nombre del {{ i }}{{ 'er' if i==1 else 'do' if i==2 else 'er' if i==3 else 'to' }} Curso</label>
                     <input type="text" name="curso_{{ i }}" class="form-control" placeholder="Ej. Curso {{ i }}" value="{{ valores_formulario.get('curso_' ~ i, '') }}">
                 </div>
-                {% endfor %}
             </div>
-            <button type="submit" class="btn text-white w-100 mt-3" style="background-color: var(--color-vino); font-weight: bold; padding: 12px;">Subir y Analizar Excel</button>
+            {% endfor %}
+
+            <button type="submit" class="btn text-white w-100 mt-4" style="background-color: var(--color-vino); font-weight: bold; padding: 12px;">Subir y Analizar Excel</button>
         </form>
     </div>
 
@@ -71,7 +76,6 @@
         </div>
         {% endfor %}
         
-        <!-- BOTÓN QUE SOLO APARECE CUANDO HAY RESULTADOS -->
         <hr class="my-4">
         <div class="text-center">
             <h5 style="color: var(--color-vino);">¿Quieres evaluar los exámenes de los candidatos aptos?</h5>
