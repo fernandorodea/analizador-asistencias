@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificado - {{ nombre }}</title>
+    <!-- También actualizamos el título de la pestaña para que se vea bien -->
+    <title>Certificado - {{ nombre|title }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -59,8 +60,7 @@
             font-weight: 700;
             margin: 0 auto 40px auto;
             max-width: 800px;
-            /* Se eliminó text-transform: uppercase para respetar mayúsculas y minúsculas */
-            text-transform: capitalize; 
+            /* Eliminamos text-transform porque Jinja se encargará de las mayúsculas */
         }
 
         .texto-descripcion {
@@ -142,8 +142,8 @@
         
         <div class="texto-a">a:</div>
         
-        <!-- El nombre ahora saldrá en formato Tipo Título (ej. Fernando Rodea) -->
-        <div class="nombre-alumno">{{ nombre }}</div>
+        <!-- Aquí está la magia de Jinja con el filtro |title -->
+        <div class="nombre-alumno">{{ nombre|title }}</div>
         
         <div class="texto-descripcion">
             Por su valiosa participación en los cursos <strong>{{ cursos }}</strong> que conforman el Programa Permanente de Capacitación Turística{% if meses %}, en los meses de <strong>{{ meses }}</strong>{% endif %}.
@@ -154,7 +154,6 @@
             <div class="firma-nombre">Lic. Nelly Minerva Carrasco Godínez</div>
             <div class="firma-cargo">Secretaria de Cultura y Turismo</div>
             
-            <!-- Se quitaron los paréntesis y se agregó una coma -->
             <div class="fecha-final">
                 Toluca, Estado de México, a {{ fecha_final }}
             </div>
