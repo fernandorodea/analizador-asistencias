@@ -23,18 +23,21 @@
         .certificado-hoja {
             background-color: white;
             background-image: url("{{ url_for('static', filename='plantilla_certificado.png') }}");
-            background-size: cover;
+            /* Forzamos que el fondo se estire exacto a las esquinas y no se recorte */
+            background-size: 100% 100%; 
             background-position: center;
-            width: 1100px;
-            height: 850px;
+            /* Medidas exactas de una hoja Carta estándar */
+            width: 1056px;
+            height: 816px;
             position: relative;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             box-sizing: border-box;
+            overflow: hidden;
         }
 
         .encabezado-texto {
-            margin-top: 150px;
+            margin-top: 130px;
             font-size: 1.1em;
             color: #555;
         }
@@ -44,20 +47,20 @@
             color: var(--color-vino);
             font-weight: 700;
             letter-spacing: 5px;
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         .texto-a {
             font-size: 1.2em;
             color: #555;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .nombre-alumno {
             font-size: 2.2em;
             color: #333;
             font-weight: 700;
-            margin: 0 auto 40px auto;
+            margin: 0 auto 30px auto;
             max-width: 800px;
         }
 
@@ -71,7 +74,7 @@
 
         .zona-inferior {
             position: absolute;
-            bottom: 50px;
+            bottom: 40px;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -93,7 +96,7 @@
         .firma-cargo {
             font-size: 0.9em;
             color: #555;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
         }
 
         .fecha-final {
@@ -121,25 +124,30 @@
             background-color: var(--color-vino);
         }
         
-        /* ESTA ES LA PARTE CORREGIDA PARA LA IMPRESIÓN */
+        /* BLOQUE DE IMPRESIÓN BLINDADO */
         @media print {
             body { 
                 background-color: white; 
-                display: block; 
+                display: flex; 
+                align-items: flex-start;
+                justify-content: center;
+                margin: 0;
+                padding: 0;
             }
             .certificado-hoja { 
-                box-shadow: none; 
-                border: none; 
-                /* Mantenemos el tamaño exacto para que no se encimen los textos */
-                width: 1100px !important; 
-                height: 850px !important; 
-                /* Obligamos al navegador a imprimir el fondo */
+                box-shadow: none !important; 
+                border: none !important; 
+                width: 1056px !important; 
+                height: 816px !important; 
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                /* Encogemos un 4% el documento al imprimir para que quepa perfecto en la hoja sin generar dobles páginas */
+                transform: scale(0.96);
+                transform-origin: top center;
             }
             .controles { display: none !important; }
             @page { 
-                size: landscape; 
+                size: letter landscape; 
                 margin: 0; 
             }
         }
