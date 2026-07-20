@@ -11,8 +11,8 @@
         }
         body {
             font-family: 'Montserrat', sans-serif;
-            /* Aquí es donde cargamos el fondo de patrón */
-            background-image: url("{{ url_for('static', filename='fondo_patron.png') }}");
+            /* Usando fondo.png */
+            background-image: url("{{ url_for('static', filename='fondo.png') }}");
             background-repeat: repeat;
             margin: 0;
             padding: 0;
@@ -22,14 +22,13 @@
             min-height: 100vh;
         }
 
-        /* Contenedor de logos arriba */
         .header-logos {
             margin-top: 40px;
             margin-bottom: 30px;
             text-align: center;
         }
         .header-logos img {
-            max-width: 600px; /* Ajusta según el tamaño de tu imagen */
+            max-width: 600px;
             height: auto;
         }
 
@@ -43,41 +42,22 @@
             text-align: center;
         }
 
-        h2 {
-            color: var(--color-vino);
-            margin-bottom: 25px;
-            font-weight: 700;
-        }
-
-        .form-group {
-            text-align: left;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-        }
-
+        h2 { color: var(--color-vino); margin-bottom: 25px; font-weight: 700; }
+        .form-group { text-align: left; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+        
         input[type="text"], input[type="password"] {
             width: 100%;
             padding: 12px;
             border: 1px solid #ced4da;
             border-radius: 5px;
-            background-color: #eef3f9; /* Color azul claro del input */
+            background-color: #eef3f9;
             box-sizing: border-box;
             font-family: 'Montserrat', sans-serif;
         }
 
-        .checkbox-group {
-            text-align: left;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-            color: #333;
-        }
-
+        .checkbox-group { text-align: left; margin-bottom: 20px; font-size: 0.9em; color: #333; }
+        
         button {
             width: 100%;
             padding: 12px;
@@ -89,50 +69,33 @@
             cursor: pointer;
             transition: background 0.3s;
         }
-
-        button:hover {
-            background-color: #650f22;
-        }
-
-        .back-link {
-            display: block;
-            margin-top: 20px;
-            color: var(--color-vino);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
+        button:hover { background-color: #650f22; }
+        .back-link { display: block; margin-top: 20px; color: var(--color-vino); text-decoration: none; font-weight: 600; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
-    <!-- Logos Institucionales -->
     <div class="header-logos">
-        <img src="{{ url_for('static', filename='logo_institucional.png') }}" alt="Gobierno y Cultura">
+        <!-- Usando logos.png -->
+        <img src="{{ url_for('static', filename='logos.png') }}" alt="Gobierno y Cultura">
     </div>
 
-    <!-- Formulario -->
     <div class="container">
         <h2>Restablecer Contraseña</h2>
-        
         <form action="/recuperar" method="POST">
             <div class="form-group">
                 <label>Tu nombre de usuario</label>
                 <input type="text" name="username" placeholder="admin" required>
             </div>
-            
             <div class="form-group">
                 <label>Tu Nueva Contraseña</label>
                 <input type="password" id="password" name="password" placeholder="••••" required>
             </div>
-            
             <div class="checkbox-group">
                 <input type="checkbox" onclick="togglePassword()"> Mostrar contraseña
             </div>
-            
             <button type="submit">Actualizar Contraseña</button>
         </form>
-        
         <a href="/" class="back-link">Cancelar y volver al inicio</a>
     </div>
 
@@ -143,6 +106,5 @@
             else { x.type = "password"; }
         }
     </script>
-
 </body>
 </html>
