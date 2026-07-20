@@ -4,82 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restablecer Contraseña - SIAGE</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --color-vino: #84142D;
-        }
+        :root { --color-vino: #84142D; }
         body {
             font-family: 'Montserrat', sans-serif;
-            /* Usando fondo.png */
             background-image: url("{{ url_for('static', filename='fondo.png') }}");
             background-repeat: repeat;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
-
-        .header-logos {
-            margin-top: 40px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .header-logos img {
-            max-width: 600px;
-            height: auto;
-        }
-
+        .header-logos { margin-top: 40px; margin-bottom: 30px; text-align: center; }
+        .header-logos img { max-width: 600px; height: auto; }
         .container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 450px;
-            text-align: center;
+            background-color: white; padding: 40px; border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center;
         }
-
         h2 { color: var(--color-vino); margin-bottom: 25px; font-weight: 700; }
         .form-group { text-align: left; margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
-        
         input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            background-color: #eef3f9;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
+            width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 5px;
+            background-color: #eef3f9; box-sizing: border-box; font-family: 'Montserrat', sans-serif;
         }
-
         .checkbox-group { text-align: left; margin-bottom: 20px; font-size: 0.9em; color: #333; }
-        
         button {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--color-vino);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.3s;
+            width: 100%; padding: 12px; background-color: var(--color-vino); color: white;
+            border: none; border-radius: 5px; font-weight: 700; cursor: pointer; transition: background 0.3s;
         }
         button:hover { background-color: #650f22; }
         .back-link { display: block; margin-top: 20px; color: var(--color-vino); text-decoration: none; font-weight: 600; font-size: 0.9em; }
     </style>
 </head>
 <body>
-
     <div class="header-logos">
-        <!-- Usando logos.png -->
         <img src="{{ url_for('static', filename='logos.png') }}" alt="Gobierno y Cultura">
     </div>
-
     <div class="container">
         <h2>Restablecer Contraseña</h2>
         <form action="/recuperar" method="POST">
@@ -98,7 +62,6 @@
         </form>
         <a href="/" class="back-link">Cancelar y volver al inicio</a>
     </div>
-
     <script>
         function togglePassword() {
             var x = document.getElementById("password");
