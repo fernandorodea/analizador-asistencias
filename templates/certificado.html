@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificado - {{ nombre }}</title>
-    <!-- Fuentes para que se vea institucional -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -21,7 +20,6 @@
             font-family: 'Montserrat', sans-serif;
         }
         
-        /* TAMAÑO EXACTO CARTA HORIZONTAL (LANDSCAPE) */
         .certificado-hoja {
             background-color: white;
             background-image: url("{{ url_for('static', filename='plantilla_certificado.png') }}");
@@ -35,7 +33,6 @@
             box-sizing: border-box;
         }
 
-        /* TEXTOS POSICIONADOS EXACTAMENTE COMO EN TU IMAGEN */
         .encabezado-texto {
             margin-top: 150px;
             font-size: 1.1em;
@@ -62,7 +59,8 @@
             font-weight: 700;
             margin: 0 auto 40px auto;
             max-width: 800px;
-            text-transform: uppercase;
+            /* Se eliminó text-transform: uppercase para respetar mayúsculas y minúsculas */
+            text-transform: capitalize; 
         }
 
         .texto-descripcion {
@@ -73,7 +71,6 @@
             line-height: 1.6;
         }
 
-        /* ZONA DE FIRMA Y FECHA */
         .zona-inferior {
             position: absolute;
             bottom: 50px;
@@ -106,7 +103,6 @@
             color: #555;
         }
 
-        /* BOTONES FLOTANTES (No salen en el PDF) */
         .controles {
             position: fixed;
             bottom: 30px;
@@ -146,6 +142,7 @@
         
         <div class="texto-a">a:</div>
         
+        <!-- El nombre ahora saldrá en formato Tipo Título (ej. Fernando Rodea) -->
         <div class="nombre-alumno">{{ nombre }}</div>
         
         <div class="texto-descripcion">
@@ -157,8 +154,9 @@
             <div class="firma-nombre">Lic. Nelly Minerva Carrasco Godínez</div>
             <div class="firma-cargo">Secretaria de Cultura y Turismo</div>
             
+            <!-- Se quitaron los paréntesis y se agregó una coma -->
             <div class="fecha-final">
-                Toluca, Estado de México ({{ fecha_final }})
+                Toluca, Estado de México, a {{ fecha_final }}
             </div>
         </div>
 
