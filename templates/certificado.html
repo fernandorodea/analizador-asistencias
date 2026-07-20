@@ -23,10 +23,8 @@
         .certificado-hoja {
             background-color: white;
             background-image: url("{{ url_for('static', filename='plantilla_certificado.png') }}");
-            /* Forzamos que el fondo se estire exacto a las esquinas y no se recorte */
             background-size: 100% 100%; 
             background-position: center;
-            /* Medidas exactas de una hoja Carta estándar */
             width: 1056px;
             height: 816px;
             position: relative;
@@ -36,133 +34,52 @@
             overflow: hidden;
         }
 
-        .encabezado-texto {
-            margin-top: 130px;
-            font-size: 1.1em;
-            color: #555;
-        }
-
-        .titulo-constancia {
-            font-size: 4.5em;
-            color: var(--color-vino);
-            font-weight: 700;
-            letter-spacing: 5px;
-            margin: 15px 0;
-        }
-
-        .texto-a {
-            font-size: 1.2em;
-            color: #555;
-            margin-bottom: 15px;
-        }
-
-        .nombre-alumno {
-            font-size: 2.2em;
-            color: #333;
-            font-weight: 700;
-            margin: 0 auto 30px auto;
-            max-width: 800px;
-        }
-
-        .texto-descripcion {
-            font-size: 1.15em;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        .zona-inferior {
-            position: absolute;
-            bottom: 40px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .linea-firma {
-            width: 400px;
-            border-top: 2px solid #333;
-            margin-bottom: 5px;
-        }
-
-        .firma-nombre {
-            font-weight: 700;
-            font-size: 1em;
-            color: #333;
-        }
-
-        .firma-cargo {
-            font-size: 0.9em;
-            color: #555;
-            margin-bottom: 35px;
-        }
-
-        .fecha-final {
-            font-size: 0.9em;
-            color: #555;
-        }
-
-        .controles {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            display: flex;
-            gap: 15px;
-        }
+        .encabezado-texto { margin-top: 130px; font-size: 1.1em; color: #555; }
+        .titulo-constancia { font-size: 4.5em; color: var(--color-vino); font-weight: 700; letter-spacing: 5px; margin: 15px 0; }
+        .texto-a { font-size: 1.2em; color: #555; margin-bottom: 15px; }
+        .nombre-alumno { font-size: 2.2em; color: #333; font-weight: 700; margin: 0 auto 30px auto; max-width: 800px; }
+        .texto-descripcion { font-size: 1.15em; color: #333; max-width: 800px; margin: 0 auto; line-height: 1.6; }
         
-        .btn {
-            padding: 12px 25px;
-            font-size: 1em;
-            font-weight: bold;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            background-color: var(--color-vino);
-        }
+        .zona-inferior { position: absolute; bottom: 40px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .linea-firma { width: 400px; border-top: 2px solid #333; margin-bottom: 5px; }
+        .firma-nombre { font-weight: 700; font-size: 1em; color: #333; }
+        .firma-cargo { font-size: 0.9em; color: #555; margin-bottom: 35px; }
+        .fecha-final { font-size: 0.9em; color: #555; }
+
+        .controles { position: fixed; bottom: 30px; right: 30px; display: flex; gap: 15px; }
+        .btn { padding: 12px 25px; font-size: 1em; font-weight: bold; color: white; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; background-color: var(--color-vino); }
         
-        /* BLOQUE DE IMPRESIÓN BLINDADO */
+        /* BLOQUE DE IMPRESIÓN REFORZADO */
         @media print {
+            @page { 
+                size: letter landscape; 
+                margin: 0 !important; /* Forza a quitar los márgenes desde el código */
+            }
             body { 
                 background-color: white; 
-                display: flex; 
-                align-items: flex-start;
-                justify-content: center;
-                margin: 0;
+                margin: 0; 
                 padding: 0;
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
             }
             .certificado-hoja { 
                 box-shadow: none !important; 
-                border: none !important; 
-                width: 1056px !important; 
-                height: 816px !important; 
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                /* Encogemos un 4% el documento al imprimir para que quepa perfecto en la hoja sin generar dobles páginas */
-                transform: scale(0.96);
-                transform-origin: top center;
+                border: none !important;
+                /* Hacemos que ocupe el 100% de la hoja impresa sin usar píxeles fijos que puedan causar encimamientos */
+                width: 100vw !important; 
+                height: 100vh !important; 
             }
             .controles { display: none !important; }
-            @page { 
-                size: letter landscape; 
-                margin: 0; 
-            }
         }
     </style>
 </head>
 <body>
 
     <div class="certificado-hoja">
-        
         <div class="encabezado-texto">
             El Gobierno del Estado de México, a través de la Secretaría de Cultura y Turismo,<br>otorga la presente
         </div>
-        
         <div class="titulo-constancia">CONSTANCIA</div>
-        
         <div class="texto-a">a:</div>
         
         <div class="nombre-alumno">{{ nombre|title }}</div>
@@ -180,7 +97,6 @@
                 Toluca, Estado de México, a {{ fecha_final }}
             </div>
         </div>
-
     </div>
 
     <div class="controles">
