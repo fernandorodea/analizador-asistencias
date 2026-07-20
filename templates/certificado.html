@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificado - {{ nombre|title }}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -37,7 +41,7 @@
         .encabezado-texto { margin-top: 130px; font-size: 1.1em; color: #555; }
         .titulo-constancia { font-size: 4.5em; color: var(--color-vino); font-weight: 700; letter-spacing: 5px; margin: 15px 0; }
         .texto-a { font-size: 1.2em; color: #555; margin-bottom: 15px; }
-        .nombre-alumno { font-size: 2.2em; color: #333; font-weight: 700; margin: 0 auto 30px auto; max-width: 800px; }
+        .nombre-alumno { font-size: 2.2em; color: #333; font-weight: 700; margin: 0 auto 30px auto; max-width: 900px; }
         .texto-descripcion { font-size: 1.15em; color: #333; max-width: 800px; margin: 0 auto; line-height: 1.6; }
         
         .zona-inferior { position: absolute; bottom: 40px; width: 100%; display: flex; flex-direction: column; align-items: center; }
@@ -49,60 +53,43 @@
         .controles { position: fixed; bottom: 30px; right: 30px; display: flex; gap: 15px; }
         .btn { padding: 12px 25px; font-size: 1em; font-weight: bold; color: white; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; background-color: var(--color-vino); }
         
-        /* BLOQUE DE IMPRESIÓN REFORZADO */
+        /* BLOQUE DE IMPRESIÓN BLINDADO */
         @media print {
-            @page { 
-                size: letter landscape; 
-                margin: 0 !important; /* Forza a quitar los márgenes desde el código */
-            }
+            @page { size: letter landscape; margin: 0 !important; }
             body { 
-                background-color: white; 
-                margin: 0; 
-                padding: 0;
-                -webkit-print-color-adjust: exact !important; 
-                print-color-adjust: exact !important; 
+                background-color: white; margin: 0; padding: 0;
+                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; 
             }
             .certificado-hoja { 
-                box-shadow: none !important; 
-                border: none !important;
-                /* Hacemos que ocupe el 100% de la hoja impresa sin usar píxeles fijos que puedan causar encimamientos */
-                width: 100vw !important; 
-                height: 100vh !important; 
+                box-shadow: none !important; border: none !important;
+                width: 11in !important; height: 8.5in !important; margin: 0 !important;
+                background-size: 11in 8.5in !important;
             }
             .controles { display: none !important; }
         }
     </style>
 </head>
 <body>
-
     <div class="certificado-hoja">
         <div class="encabezado-texto">
             El Gobierno del Estado de México, a través de la Secretaría de Cultura y Turismo,<br>otorga la presente
         </div>
         <div class="titulo-constancia">CONSTANCIA</div>
         <div class="texto-a">a:</div>
-        
         <div class="nombre-alumno">{{ nombre|title }}</div>
-        
         <div class="texto-descripcion">
             Por su valiosa participación en los cursos <strong>{{ cursos }}</strong> que conforman el Programa Permanente de Capacitación Turística{% if meses %}, en los meses de <strong>{{ meses }}</strong>{% endif %}.
         </div>
-
         <div class="zona-inferior">
             <div class="linea-firma"></div>
             <div class="firma-nombre">Lic. Nelly Minerva Carrasco Godínez</div>
             <div class="firma-cargo">Secretaria de Cultura y Turismo</div>
-            
-            <div class="fecha-final">
-                Toluca, Estado de México, a {{ fecha_final }}
-            </div>
+            <div class="fecha-final">Toluca, Estado de México, a {{ fecha_final }}</div>
         </div>
     </div>
-
     <div class="controles">
         <button onclick="window.print()" class="btn">🖨️ Guardar PDF / Imprimir</button>
         <button onclick="window.close()" class="btn" style="background-color: #555;">Cerrar</button>
     </div>
-
 </body>
 </html>
