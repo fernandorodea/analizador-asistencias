@@ -8,86 +8,117 @@
     <style>
         :root {
             --color-vino: #84142D;
-            --color-fondo: #f4f4f9;
         }
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: var(--color-fondo);
+            /* Aquí es donde cargamos el fondo de patrón */
+            background-image: url("{{ url_for('static', filename='fondo_patron.png') }}");
+            background-repeat: repeat;
+            margin: 0;
+            padding: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
         }
+
+        /* Contenedor de logos arriba */
+        .header-logos {
+            margin-top: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header-logos img {
+            max-width: 600px; /* Ajusta según el tamaño de tu imagen */
+            height: auto;
+        }
+
         .container {
             background-color: white;
             padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             text-align: center;
         }
+
         h2 {
             color: var(--color-vino);
             margin-bottom: 25px;
             font-weight: 700;
         }
+
         .form-group {
             text-align: left;
             margin-bottom: 20px;
         }
+
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
             color: #555;
         }
+
         input[type="text"], input[type="password"] {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            background-color: #eef3f9; /* Color azul claro del input */
             box-sizing: border-box;
             font-family: 'Montserrat', sans-serif;
         }
+
         .checkbox-group {
             text-align: left;
             margin-bottom: 20px;
             font-size: 0.9em;
+            color: #333;
         }
+
         button {
             width: 100%;
             padding: 12px;
             background-color: var(--color-vino);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.3s;
         }
+
         button:hover {
             background-color: #650f22;
         }
+
         .back-link {
             display: block;
             margin-top: 20px;
             color: var(--color-vino);
             text-decoration: none;
+            font-weight: 600;
             font-size: 0.9em;
         }
     </style>
 </head>
 <body>
 
+    <!-- Logos Institucionales -->
+    <div class="header-logos">
+        <img src="{{ url_for('static', filename='logo_institucional.png') }}" alt="Gobierno y Cultura">
+    </div>
+
+    <!-- Formulario -->
     <div class="container">
         <h2>Restablecer Contraseña</h2>
         
         <form action="/recuperar" method="POST">
             <div class="form-group">
                 <label>Tu nombre de usuario</label>
-                <input type="text" name="username" placeholder="Escribe tu usuario" required>
+                <input type="text" name="username" placeholder="admin" required>
             </div>
             
             <div class="form-group">
