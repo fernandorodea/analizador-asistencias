@@ -1,1 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado - {{ nombre }}</title>
+    <!-- Fuentes para que se vea institucional -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-vino: #84142D;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #525252; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        /* TAMAÑO EXACTO CARTA HORIZONTAL (LANDSCAPE) */
+        .certificado-hoja {
+            background-color: white;
+            background-image: url("{{ url_for('static', filename='plantilla_certificado.png') }}");
+            background-size: cover;
+            background-position: center;
+            width: 1100px;
+            height: 850px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
 
+        /* TEXTOS POSICIONADOS EXACTAMENTE COMO EN TU IMAGEN */
+        .encabezado-texto {
+            margin-top: 150px;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        .titulo-constancia {
+            font-size: 4.5em;
+            color: var(--color-vino);
+            font-weight: 700;
+            letter-spacing: 5px;
+            margin: 20px 0;
+        }
+
+        .texto-a {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .nombre-alumno {
+            font-size: 2.2em;
+            color: #333;
+            font-weight: 700;
+            margin: 0 auto 40px auto;
+            max-width: 800px;
+            text-transform: uppercase;
+        }
+
+        .texto-descripcion {
+            font-size: 1.15em;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ZONA DE FIRMA Y FECHA */
+        .zona-inferior {
+            position: absolute;
+            bottom: 50px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .linea-firma {
+            width: 400px;
+            border-top: 2px solid #333;
+            margin-bottom: 5px;
+        }
+
+        .firma-nombre {
+            font-weight: 700;
+            font-size: 1em;
+            color: #333;
+        }
+
+        .firma-cargo {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 40px;
+        }
+
+        .fecha-final {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        /* BOTONES FLOTANTES (No salen en el PDF) */
+        .controles {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+        }
+        .btn {
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            background-color: var(--color-vino);
+        }
+        
+        @media print {
+            body { background-color: white; display: block; }
+            .certificado-hoja { box-shadow: none; border: none; width: 100%; height: auto; }
+            .controles { display: none; }
+            @page { size: landscape; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="certificado-hoja">
+        
+        <div class="encabezado-texto">
+            El Gobierno del Estado de México, a través de la Secretaría de Cultura y Turismo,<br>otorga la presente
+        </div>
+        
+        <div class="titulo-constancia">CONSTANCIA</div>
+        
+        <div class="texto-a">a:</div>
+        
+        <div class="nombre-alumno">{{ nombre }}</div>
+        
+        <div class="texto-descripcion">
+            Por su valiosa participación en los cursos <strong>{{ cursos }}</strong> que conforman el Programa Permanente de Capacitación Turística{% if meses %}, en los meses de <strong>{{ meses }}</strong>{% endif %}.
+        </div>
+
+        <div class="zona-inferior">
+            <div class="linea-firma"></div>
+            <div class="firma-nombre">Lic. Nelly Minerva Carrasco Godínez</div>
+            <div class="firma-cargo">Secretaria de Cultura y Turismo</div>
+            
+            <div class="fecha-final">
+                Toluca, Estado de México ({{ fecha_final }})
+            </div>
+        </div>
+
+    </div>
+
+    <div class="controles">
+        <button onclick="window.print()" class="btn">🖨️ Guardar PDF / Imprimir</button>
+        <button onclick="window.close()" class="btn" style="background-color: #555;">Cerrar</button>
+    </div>
+
+</body>
+</html>
