@@ -136,7 +136,6 @@
                                 <th>Examen 4</th>
                             {% endif %}
                             <th>Resultado Final</th>
-                            <!-- NUEVA COLUMNA -->
                             <th>Certificado</th>
                         </tr>
                     </thead>
@@ -155,12 +154,12 @@
                                     <span class="estado-verde">✅ {{ eval.estado }}</span>
                                 {% endif %}
                             </td>
-                            <!-- NUEVO BOTÓN DE ACCIÓN -->
+                            <!-- BOTÓN DE ACCIÓN CORREGIDO -->
                             <td>
                                 {% if "No" not in eval.estado and "Error" not in eval.estado %}
-                                    <button class="btn btn-sm text-white shadow-sm" style="background-color: var(--color-dorado); font-weight: bold;" onclick="alert('Generando certificado para: {{ eval.nombre }}\n\n(Próximamente conectaremos esto con Python para descargar el archivo)')">
+                                    <a href="{{ url_for('certificado', nombre=eval.nombre) }}" target="_blank" class="btn btn-sm text-white shadow-sm" style="background-color: var(--color-dorado); font-weight: bold; text-decoration: none;">
                                         📄 Generar
-                                    </button>
+                                    </a>
                                 {% else %}
                                     <span class="text-muted small">No disponible</span>
                                 {% endif %}
