@@ -1,7 +1,7 @@
 {
-  "name": "Portal de Gestión - SIAGE",
-  "short_name": "SIAGE",
-  "description": "Sistema Integral de Asistencia y Gestión Escolar de la Secretaría de Cultura y Turismo",
+  "name": "Portal de Gestión",
+  "short_name": "Portal",
+  "description": "Automatización del control de asistencias y emisión de constancias de la Secretaría de Cultura y Turismo",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
