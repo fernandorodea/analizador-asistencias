@@ -14,7 +14,9 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --color-vino: #84142D; }
+        /* Agregamos el color dorado a las variables */
+        :root { --color-vino: #84142D; --color-dorado: #C4A77D; }
+        
         body {
             font-family: 'Montserrat', sans-serif;
             background-image: url("{{ url_for('static', filename='fondo.png') }}");
@@ -22,12 +24,20 @@
             margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
-        .header-logos { margin-top: 40px; margin-bottom: 30px; text-align: center; }
-        .header-logos img { max-width: 600px; height: auto; }
+        
+        .header-logos { margin-top: 40px; margin-bottom: 25px; text-align: center; width: 100%; padding: 0 20px; box-sizing: border-box; }
+        
+        /* Ajustamos el tamaño del logo para que mida exactamente lo mismo que el contenedor */
+        .header-logos img { max-width: 450px; width: 100%; height: auto; }
+        
+        /* Agregamos el borde superior dorado al contenedor */
         .container {
-            background-color: white; padding: 40px; border-radius: 10px;
+            background-color: white; padding: 40px; border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center;
+            border-top: 5px solid var(--color-dorado);
+            box-sizing: border-box;
         }
+        
         h2 { color: var(--color-vino); margin-bottom: 25px; font-weight: 700; }
         .form-group { text-align: left; margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
@@ -53,7 +63,6 @@
     <div class="container">
         <h2>Iniciar Sesión</h2>
         
-        <!-- Formulario corregido para que procese los datos en la misma ruta -->
         <form method="POST">
             <div class="form-group">
                 <label>Usuario</label>
