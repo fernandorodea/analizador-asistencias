@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión</title>
+    <title>Iniciar Sesión - Portal de Gestión</title>
     
     <!-- Favicon -->
     <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/png">
@@ -52,7 +52,9 @@
     </div>
     <div class="container">
         <h2>Iniciar Sesión</h2>
-        <form action="/login" method="POST">
+        
+        <!-- Formulario corregido para que procese los datos en la misma ruta -->
+        <form method="POST">
             <div class="form-group">
                 <label>Usuario</label>
                 <input type="text" name="username" placeholder="admin" required>
@@ -63,6 +65,7 @@
             </div>
             <button type="submit">Ingresar al Sistema</button>
         </form>
+        
         <div class="links">
             <a href="/registro">Crear una cuenta</a>
             <span class="divider">|</span>
